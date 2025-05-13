@@ -178,7 +178,7 @@ This phase aims to exercise governmental power.
 * *Bugging:* communists view another player’s party card.
 * *Five-Year Plan:* add 2 communist + 1 liberal policy to draw deck.
 * *Congress:* communists learn who the original communists are.
-* *Radicalization:* convert a player into a communist by swapping their party card with another in the center of the table (except Hitler and Capitalist, if any of those is converted, before everyone opens their eyes they must swap their card back).
+* *Radicalization:* convert a player into a communist by swapping their party card with another in the center of the table (except Hitler, if he is converted, before everyone opens their eyes he must swap his card back).
 
 ---
 
@@ -253,15 +253,6 @@ Depending on player count:
   * In most cases, Hitler does *not* know who the Fascists are.
   * In 5–6 player games, Hitler opens eyes and sees other Fascists.
 * **Do Fascists know Hitler?** → Yes, they always should know who's Hitler.
-
-### 💼 The Capitalist
-
-* Decoy Party: the Capitalist matches ideological goal with fascists
-* **Wins** if **neither the communists nor the anarchist** win, which means the capitalist wins if **either the liberals or the fascists win** ONLY when a communist party or an anarchist is present.
-* If assassinated: add 1 communist policy to the deck.
-* **Cases in which the Capitalist is useful:**
-  * If the communists have the upper-hand because policies are being enacted too quickly, you can add the capitalist to the game because of its win condition. The capitalist can be detrimental to the communists without giving an advantage to the other parties
-  * If the communists are having difficulty winning because they cant seem to assasinate Hitler, you can include the Capitalist. That way, communists have a secondary assasination target.
 
 ---
 
