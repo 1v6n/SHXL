@@ -1,0 +1,15 @@
+# Core requirements
+setuptools
+flask
+requests
+behave
+
+# Development and code quality
+black
+pylint
+isort
+mypy
+
+# Documentation
+sphinx
+sphinx_rtd_theme
