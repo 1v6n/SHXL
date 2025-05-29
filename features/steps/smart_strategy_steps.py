@@ -353,8 +353,12 @@ def step_impl_smart_filter_policies(context):
     # For compatibility with discard steps that expect context.discarded
     if len(result) == 2:  # (kept_policies, discarded_policy)
         context.kept_policies, context.discarded = result
+        context.chosen_policies = (
+            context.kept_policies
+        )  # For fascist strategy compatibility
     else:
         context.kept_policies = result
+        context.chosen_policies = result  # For fascist strategy compatibility
         context.discarded = None
 
 

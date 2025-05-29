@@ -363,7 +363,14 @@ def step_impl_liberal_nominate_chancellor(context):
 @when("la estrategia liberal filtra las políticas")
 def step_impl_liberal_filter_policies(context):
     """Liberal strategy filters policies."""
-    context.result = context.strategy.filter_policies(context.policies)
+    result = context.strategy.filter_policies(context.policies)
+    if isinstance(result, tuple):
+        context.chosen_policies, context.discarded_policies = result
+        context.result = result
+    else:
+        # Fallback for older implementation
+        context.chosen_policies = result
+        context.result = result
 
 
 @when("la estrategia liberal elige una política")
@@ -704,13 +711,13 @@ def step_impl_not_choose_inspected(context):
 @then("debe elegir el jugador liberal conocido")
 def step_impl_chooses_known_liberal(context):
     """Verify strategy chooses known liberal player."""
-    liberal_players = [
-        p
+    liberal_player_ids = [
+        p.id
         for p in context.eligible_players
         if p.id in context.mock_player.inspected_players
         and context.mock_player.inspected_players[p.id] == "liberal"
     ]
-    assert context.result in liberal_players
+    assert context.result.id in liberal_player_ids
 
 
 @then("debe descartar la política fascista en propaganda")
