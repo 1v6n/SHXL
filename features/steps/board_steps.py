@@ -132,11 +132,22 @@ def step_impl_powers_setup(context, power_type, expected_powers):
 @then("la pista {policy_type} debe tener {expected_count:d} políticas")
 def step_impl_track_count(context, policy_type, expected_count):
     """Verify track progress."""
-    if policy_type == "liberal":
+    # Map Spanish to English policy types
+    policy_type_map = {
+        "liberal": "liberal",
+        "fascist": "fascist",
+        "fascista": "fascist",  # Spanish translation
+        "communist": "communist",
+        "comunista": "communist",  # Spanish translation
+    }
+
+    normalized_policy_type = policy_type_map.get(policy_type, policy_type)
+
+    if normalized_policy_type == "liberal":
         actual_count = context.board.liberal_track
-    elif policy_type == "fascist":
+    elif normalized_policy_type == "fascist":
         actual_count = context.board.fascist_track
-    elif policy_type == "communist":
+    elif normalized_policy_type == "communist":
         actual_count = context.board.communist_track
     else:
         raise ValueError(f"Unknown policy type: {policy_type}")
