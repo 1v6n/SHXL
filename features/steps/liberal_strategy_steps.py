@@ -68,10 +68,32 @@ def step_impl_known_player_affiliation(context, player_id, affiliation):
         "liberal": "liberal",
         "fascista": "fascist",
         "fascista no Hitler": "fascist",
+        "fascista y es Hitler": "fascist",
+        "comunista": "communist",
     }
 
     english_affiliation = affiliation_map.get(affiliation, affiliation)
     context.mock_player.inspected_players[player_id] = english_affiliation
+
+    # Special handling for Hitler
+    if affiliation == "fascista y es Hitler":
+        player = context.eligible_players[player_id - 1]  # player_id is 1-based
+        player.is_hitler = True
+        player.is_fascist = True
+    elif affiliation == "fascista no Hitler":
+        player = context.eligible_players[player_id - 1]  # player_id is 1-based
+        player.is_hitler = False
+        player.is_fascist = True
+    elif affiliation == "fascista":
+        player = context.eligible_players[player_id - 1]  # player_id is 1-based
+        player.is_hitler = False
+        player.is_fascist = True
+
+    # Special handling for communists - add to known_communists list
+    if affiliation == "comunista":
+        if not hasattr(context.mock_player, "known_communists"):
+            context.mock_player.known_communists = []
+        context.mock_player.known_communists.append(player_id)
 
     # Recreate strategy if it exists to ensure it uses updated mock_player
     if hasattr(context, "strategy"):
@@ -172,7 +194,12 @@ def step_impl_game_state_fascist_policies(context, count):
     if not hasattr(context, "mock_player"):
         context.mock_player = Mock()
         context.mock_player.state = Mock()
+
+    # Set both direct and board tracks for cross-compatibility
     context.mock_player.state.fascist_track = count
+    if not hasattr(context.mock_player.state, "board"):
+        context.mock_player.state.board = Mock()
+    context.mock_player.state.board.fascist_track = count
 
 
 @given("una lista de políticas para veto: {policy_list}")
@@ -194,7 +221,11 @@ def step_impl_eligible_players_for_action(context, count, action):
         player = Mock()
         player.id = i
         player.name = f"Player {i}"
+        # Initialize all role attributes
         player.is_hitler = False
+        player.is_fascist = False
+        player.is_liberal = False
+        player.is_communist = False
         context.eligible_players.append(player)
 
 
@@ -206,7 +237,11 @@ def step_impl_eligible_players_execution_no_info(context, count):
         player = Mock()
         player.id = i
         player.name = f"Player {i}"
+        # Initialize all role attributes
         player.is_hitler = False
+        player.is_fascist = False
+        player.is_liberal = False
+        player.is_communist = False
         context.eligible_players.append(player)
     # Ensure no information
     if hasattr(context, "mock_player"):
@@ -242,6 +277,9 @@ def step_impl_known_fascist_not_hitler(context, player_id):
     for player in context.eligible_players:
         if player.id == player_id:
             player.is_hitler = False
+            player.is_fascist = True  # <-- Add this line!
+            player.is_liberal = False
+            player.is_communist = False
 
 
 @given("una política {policy_type} para propaganda")
