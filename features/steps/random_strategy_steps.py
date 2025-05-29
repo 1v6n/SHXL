@@ -69,11 +69,11 @@ def step_impl_eligible_players_for_action(context, count, action):
 
 
 @given("una lista de {count:d} políticas: {policy_list}")
-def step_impl_policies_list(context, count, policy_list):
-    """Create a list of policies."""
+def step_impl_random_policies_list(context, count, policy_list):
+    """Create a list of policies for random strategy."""
     policy_names = [p.strip().strip('"') for p in policy_list.split(",")]
     context.policies = []
-    for policy_name in policy_names:
+    for policy_name in policy_names[:count]:  # Use count to limit policies
         policy = Mock()
         policy.type = policy_name
         policy.name = policy_name
@@ -144,6 +144,8 @@ def step_impl_filter_policies(context):
     """Strategy filters policies as president."""
     context.filtered_result = context.strategy.filter_policies(context.policies)
     context.chosen_policies, context.discarded_policy = context.filtered_result
+    # Also set context.result for compatibility with liberal strategy steps
+    context.result = context.filtered_result
 
 
 @when("la estrategia elige una política")
@@ -309,14 +311,14 @@ def step_impl_check_player_in_original_list(context):
 
 
 @then("debe retornar {count:d} políticas para pasar")
-def step_impl_check_policies_to_pass(context, count):
-    """Check number of policies to pass."""
+def step_impl_check_random_policies_to_pass(context, count):
+    """Check number of policies to pass for random strategy."""
     assert len(context.chosen_policies) == count
 
 
 @then("debe retornar {count:d} política para descartar")
-def step_impl_check_policies_to_discard(context, count):
-    """Check number of policies to discard."""
+def step_impl_check_random_policies_to_discard(context, count):
+    """Check number of policies to discard for random strategy."""
     if isinstance(context.discarded_policy, list):
         assert len(context.discarded_policy) == count
     else:
