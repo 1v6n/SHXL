@@ -153,7 +153,7 @@ Feature: Funcionalidad de la estrategia liberal
   Scenario: Radicalización de fascista conocido
     Given una estrategia liberal
     And una lista de 3 jugadores elegibles para radicalización
-    And el jugador 2 es conocido como fascista no Hitler
+    And el jugador 2 es conocido como fascista
     When la estrategia liberal elige un jugador para radicalizar
     Then debe elegir el jugador fascista conocido
 
