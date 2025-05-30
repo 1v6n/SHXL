@@ -32,8 +32,8 @@ Feature: Funcionalidad de la estrategia inteligente
   Scenario: Nominación liberal - Priorizando liberales conocidos
     Given una estrategia smart liberal
     And una lista de 4 jugadores elegibles para canciller
-    And el jugador 2 es conocido como liberal
-    And el jugador 3 es conocido como fascista
+    And el jugador 2 es conocido como liberal (liberal)
+    And el jugador 3 es conocido como fascista (liberal)
     When la estrategia smart nomina un canciller
     Then debe retornar el jugador liberal conocido
     And no debe elegir el jugador fascista conocido
@@ -191,10 +191,10 @@ Feature: Funcionalidad de la estrategia inteligente
     When la estrategia smart elige el siguiente presidente
     Then debe elegir el jugador fascista
 
-  Scenario: Elección especial liberal - Eligiendo liberales conocidos
+Scenario: Elección especial liberal - Eligiendo liberales conocidos
     Given una estrategia smart liberal
     And una lista de 3 jugadores elegibles para presidencia especial
-    And el jugador 2 es conocido como liberal
+    And el jugador 2 es conocido como liberal (liberal)
     When la estrategia smart elige el siguiente presidente
     Then debe elegir el jugador liberal conocido
 

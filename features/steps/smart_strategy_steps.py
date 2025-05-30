@@ -717,3 +717,17 @@ def step_impl_game_state_fascist_policies_smart(context, count):
     # Set both board.fascist_track (for SmartStrategy) and fascist_track (for LiberalStrategy compatibility)
     context.mock_player.state.board.fascist_track = count
     context.mock_player.state.fascist_track = count
+
+@given("el jugador {player_id:d} es conocido como fascista y es Hitler")
+def step_impl_known_fascist_hitler(context, player_id):
+    """Set player as known fascist and Hitler."""
+    ensure_mock_player_setup_smart(context)
+    context.mock_player.inspected_players[player_id] = "fascist"
+    if hasattr(context, "eligible_players"):
+        for player in context.eligible_players:
+            if player.id == player_id:
+                player.is_fascist = True
+                player.is_liberal = False
+                player.is_communist = False
+                player.is_hitler = True
+                break
