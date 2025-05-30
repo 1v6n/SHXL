@@ -718,6 +718,7 @@ def step_impl_game_state_fascist_policies_smart(context, count):
     context.mock_player.state.board.fascist_track = count
     context.mock_player.state.fascist_track = count
 
+
 @given("el jugador {player_id:d} es conocido como fascista y es Hitler")
 def step_impl_known_fascist_hitler(context, player_id):
     """Set player as known fascist and Hitler."""
@@ -731,3 +732,49 @@ def step_impl_known_fascist_hitler(context, player_id):
                 player.is_communist = False
                 player.is_hitler = True
                 break
+
+
+@given("el jugador {player_id:d} es conocido como {affiliation} ({strategy_context})")
+def step_impl_known_player_affiliation_smart(
+    context, player_id, affiliation, strategy_context
+):
+    """Mark a player as having a known affiliation for smart strategy."""
+    # The strategy_context parameter is ignored but needed for pattern matching
+    ensure_mock_player_setup_smart(context)
+
+    # Map Spanish terms to English terms expected by strategy
+    affiliation_map = {
+        "liberal": "liberal",
+        "fascista": "fascist",
+        "fascista no Hitler": "fascist",
+        "fascista y es Hitler": "fascist",
+        "comunista": "communist",
+    }
+
+    english_affiliation = affiliation_map.get(affiliation, affiliation)
+    context.mock_player.inspected_players[player_id] = english_affiliation
+
+    # Also set in eligible players if they exist
+    if hasattr(context, "eligible_players"):
+        for player in context.eligible_players:
+            if player.id == player_id:
+                if english_affiliation == "liberal":
+                    player.is_liberal = True
+                    player.is_fascist = False
+                    player.is_communist = False
+                    player.is_hitler = False
+                elif english_affiliation == "fascist":
+                    player.is_fascist = True
+                    player.is_liberal = False
+                    player.is_communist = False
+                    player.is_hitler = False
+                elif english_affiliation == "communist":
+                    player.is_communist = True
+                    player.is_liberal = False
+                    player.is_fascist = False
+                    player.is_hitler = False
+                break
+
+    # Recreate strategy if it exists to ensure it uses updated mock_player
+    if hasattr(context, "strategy"):
+        context.strategy = SmartStrategy(context.mock_player)

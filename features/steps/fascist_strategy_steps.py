@@ -183,14 +183,13 @@ def step_impl_known_player_affiliation_fascist(context, player_id, affiliation):
     if "Hitler" in affiliation:
         hitler_player = True
     else:
-        hitler_player = False
-
-    # Map Spanish terms to English terms expected by strategy
+        hitler_player = False  # Map Spanish terms to English terms expected by strategy
     affiliation_map = {
         "fascista": "fascist",
         "fascista no Hitler": "fascist",
         "fascista y es Hitler": "fascist",  # Add this mapping
         "liberal": "liberal",
+        "liberal (liberal)": "liberal",  # Handle smart strategy test format
         "comunista": "communist",
         "hitler": "hitler",
     }
@@ -628,7 +627,12 @@ def step_impl_check_choose_non_fascist_uninspected(context):
     """Check that chosen player is not fascist and not inspected."""
     chosen_player = context.spy_result
     assert getattr(chosen_player, "is_fascist", False) is False
-    assert getattr(chosen_player, "was_inspected", False) is False
+    # Check if player was inspected using the correct attribute/method
+    player_was_inspected = (
+        hasattr(context.strategy.player, "inspected_players")
+        and chosen_player.id in context.strategy.player.inspected_players
+    )
+    assert player_was_inspected is False
 
 
 @then("debe obtener información útil")

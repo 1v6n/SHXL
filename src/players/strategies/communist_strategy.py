@@ -361,19 +361,35 @@ class CommunistStrategy(PlayerStrategy):
         ):
             return False
         marked_player = self.player.state.marked_for_execution
+
+        # Always pardon fellow communists
         if marked_player.id in self.player.known_communists:
             return True
+
+        # Check via inspected players attribute
         if (
-            marked_player.id in self.player.known_affiliations
-            and self.player.known_affiliations[marked_player.id] == "liberal"
+            hasattr(self.player, "inspected_players")
+            and marked_player.id in self.player.inspected_players
         ):
-            return choice([True, True, False])  # Bias toward pardoning
+            if self.player.inspected_players[marked_player.id] == "communist":
+                return True
+            elif self.player.inspected_players[marked_player.id] == "fascist":
+                return False
+            elif self.player.inspected_players[marked_player.id] == "liberal":
+                return choice([True, True, False])  # Bias toward pardoning
+
+        # Check via known affiliations
         if (
-            marked_player.id in self.player.known_affiliations
-            and self.player.known_affiliations[marked_player.id] == "fascist"
+            hasattr(self.player, "known_affiliations")
+            and marked_player.id in self.player.known_affiliations
         ):
-            return False
-        return choice([True, False])
+            if self.player.known_affiliations[marked_player.id] == "liberal":
+                return choice([True, True, False])  # Bias toward pardoning
+            elif self.player.known_affiliations[marked_player.id] == "fascist":
+                return False
+
+        # Don't pardon unknown players - too risky
+        return False
 
     def chancellor_veto_proposal(self, policies):
         """Decides whether to propose a veto as chancellor.

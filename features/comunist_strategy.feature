@@ -102,7 +102,7 @@ Feature: Funcionalidad de la estrategia comunista
     And el jugador 2 es conocido como fascista
     When la estrategia comunista elige un jugador para marcar
     Then debe elegir el jugador fascista conocido (comunista)
-    And debe usar mismo criterio que ejecución
+    And debe usar mismo criterio que ejecución para comunistas
 
   Scenario: Espionaje de no comunistas no inspeccionados
     Given una estrategia comunista

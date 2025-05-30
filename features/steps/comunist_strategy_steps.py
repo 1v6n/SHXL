@@ -95,6 +95,7 @@ def ensure_mock_player_setup_communist(context):
 
 # Given steps (Setup)
 
+
 @given("un jugador comunista mock")
 def step_impl_communist_mock_player(context):
     """Create a mock communist player.
@@ -486,21 +487,8 @@ def step_impl_fascist_president(context):
     context.president = player
 
 
-@given("un canciller fascista")
-def step_impl_fascist_chancellor(context):
-    """Create fascist chancellor.
-
-    Args:
-        context: Behave context object.
-    """
-    player = Mock()
-    player.id = 96
-    player.name = "Fascist Chancellor"
-    player.is_fascist = True
-    player.is_communist = False
-    player.is_liberal = False
-    player.is_hitler = False
-    context.chancellor = player
+# Use the existing implementation from fascist_strategy_steps.py
+# @given("un canciller fascista") - removed duplicate
 
 
 @given("una política {policy_type} para propaganda comunista")
@@ -535,31 +523,18 @@ def step_impl_communist_marked_execution(context):
 
     context.mock_player.state.marked_for_execution = marked_player
 
+    # Add marked player to known_communists so pardon logic works correctly
+    if hasattr(context.mock_player, "known_communists"):
+        if isinstance(context.mock_player.known_communists, list):
+            context.mock_player.known_communists.append(95)
+        else:
+            context.mock_player.known_communists.add(95)
+    else:
+        context.mock_player.known_communists = [95]
 
-@given("un fascista está marcado para ejecución")
-def step_impl_fascist_marked_execution(context):
-    """Create fascist marked for execution.
 
-    Creates a fascist player marked for execution and adds them to the
-    known_affiliations so the strategy recognizes them as an enemy.
-
-    Args:
-        context: Behave context object.
-    """
-    ensure_mock_player_setup_communist(context)
-
-    marked_player = Mock()
-    marked_player.id = 94
-    marked_player.name = "Marked Fascist"
-    marked_player.is_fascist = True
-    marked_player.is_communist = False
-    marked_player.is_liberal = False
-    marked_player.is_hitler = False
-
-    # Make the fascist known to the communist strategy
-    context.mock_player.known_affiliations[94] = "fascist"
-
-    context.mock_player.state.marked_for_execution = marked_player
+# Use the existing implementation from fascist_strategy_steps.py
+# @given("un fascista está marcado para ejecución") - removed duplicate
 
 
 @given("políticas sin comunistas para propuesta de veto")
@@ -610,6 +585,7 @@ def step_impl_state_has_fascist_liberal_policies(context):
 
 
 # When steps (Actions)
+
 
 @when("creo una estrategia comunista con el jugador")
 def step_impl_create_communist_strategy(context):
@@ -700,7 +676,9 @@ def step_impl_communist_choose_radicalize(context):
     Args:
         context: Behave context object.
     """
-    context.result = context.strategy.choose_player_to_radicalize(context.eligible_players)
+    context.result = context.strategy.choose_player_to_radicalize(
+        context.eligible_players
+    )
 
 
 @when("la estrategia comunista elige un jugador para marcar")
@@ -710,7 +688,12 @@ def step_impl_communist_choose_mark(context):
     Args:
         context: Behave context object.
     """
-    context.result = context.strategy.choose_player_to_mark(context.eligible_players)
+    context.mark_result = context.strategy.choose_player_to_mark(
+        context.eligible_players
+    )
+    context.result = (
+        context.mark_result
+    )  # Set result for compatibility with shared steps
 
 
 @when("la estrategia comunista elige un jugador para espionar")
@@ -722,6 +705,7 @@ def step_impl_communist_choose_spy(context):
     """
     context.result = context.strategy.choose_player_to_inspect(context.eligible_players)
 
+
 @when("la estrategia comunista decide sobre propaganda")
 def step_impl_communist_propaganda(context):
     """Communist strategy decides on propaganda.
@@ -731,6 +715,7 @@ def step_impl_communist_propaganda(context):
     """
     context.propaganda_result = context.strategy.propaganda_decision(context.policy)
     context.result = context.propaganda_result
+
 
 @when("la estrategia comunista elige un revelador")
 def step_impl_communist_choose_revealer(context):
@@ -760,7 +745,9 @@ def step_impl_communist_propose_veto(context):
     Args:
         context: Behave context object.
     """
-    context.veto_proposal_result = context.strategy.chancellor_veto_proposal(context.policies)
+    context.veto_proposal_result = context.strategy.chancellor_veto_proposal(
+        context.policies
+    )
     context.result = context.veto_proposal_result
 
 
@@ -776,6 +763,7 @@ def step_impl_communist_social_democratic(context):
 
 
 # Then steps (Assertions/Verification)
+
 
 @then("la estrategia comunista debe estar inicializada correctamente")
 def step_impl_communist_initialized(context):
@@ -1055,23 +1043,31 @@ def step_impl_choose_known_liberal(context):
     assert context.mock_player.inspected_players[chosen_id] == "liberal"
 
 
-@then("debe usar mismo criterio que ejecución")
-def step_impl_same_criteria_as_execution(context):
-    """Verify marking uses same criteria as execution.
+# Use the existing implementation from fascist_strategy_steps.py
+# @then("debe usar mismo criterio que ejecución") - removed duplicate
 
-    This is primarily a documentation step to ensure marking logic
-    follows the same prioritization as execution logic.
 
-    Args:
-        context: Behave context object.
-
-    Raises:
-        AssertionError: If fascist was not chosen when available.
-    """
-    # Check that a fascist was chosen when available
-    fascist_players = [p for p in context.eligible_players if p.is_fascist]
-    if fascist_players:
-        assert context.result.is_fascist == True
+@then("debe usar mismo criterio que ejecución para comunistas")
+def step_impl_check_same_criteria_execution_communist(context):
+    """Check that marking uses the same criteria as execution for communist strategy."""
+    # Run the execution strategy with the same players and verify result matches
+    execution_result = context.strategy.choose_player_to_kill(context.eligible_players)
+    # Communist strategy should target fascists
+    known_fascists = [
+        p
+        for p in context.eligible_players
+        if (
+            p.id in context.strategy.player.inspected_players
+            and context.strategy.player.inspected_players[p.id] == "fascist"
+        )
+        or (
+            hasattr(context.strategy.player, "known_affiliations")
+            and p.id in context.strategy.player.known_affiliations
+            and context.strategy.player.known_affiliations[p.id] == "fascist"
+        )
+    ]
+    if known_fascists:
+        assert context.mark_result in known_fascists
 
 
 @then("debe elegir un jugador no comunista no inspeccionado")

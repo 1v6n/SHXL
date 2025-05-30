@@ -8,14 +8,6 @@ class FascistStrategy(PlayerStrategy):
 
     def nominate_chancellor(self, eligible_players):
         """Choose Hitler or another fascist if possible"""
-        # Debug: print all eligible players and their attributes
-        print(f"DEBUG: nominate_chancellor eligible_players:")
-        for p in eligible_players:
-            print(
-                f"  Player {getattr(p, 'id', 'UNKNOWN')}: is_fascist={getattr(p, 'is_fascist', 'MISSING')}, is_hitler={getattr(p, 'is_hitler', 'MISSING')}"
-            )
-        print(f"DEBUG: fascist_track = {self.player.state.fascist_track}")
-
         # If Hitler can be chancellor and enough fascist policies are enacted
         if self.player.state.fascist_track >= 3 and any(
             getattr(p, "is_hitler", False) for p in eligible_players
@@ -23,9 +15,6 @@ class FascistStrategy(PlayerStrategy):
             # Choose Hitler
             for player in eligible_players:
                 if getattr(player, "is_hitler", False):
-                    print(
-                        f"DEBUG: Choosing Hitler player {getattr(player, 'id', 'UNKNOWN')}"
-                    )
                     return player
 
         # Otherwise prefer fellow fascists
@@ -34,20 +23,11 @@ class FascistStrategy(PlayerStrategy):
             for p in eligible_players
             if getattr(p, "is_fascist", False) and not getattr(p, "is_hitler", False)
         ]
-        print(f"DEBUG: Found {len(fascists)} non-Hitler fascist players")
         if fascists:
-            chosen = choice(fascists)
-            print(
-                f"DEBUG: Choosing non-Hitler fascist player {getattr(chosen, 'id', 'UNKNOWN')}"
-            )
-            return chosen
+            return choice(fascists)
 
         # If no fascists are eligible, choose randomly
-        chosen = choice(eligible_players)
-        print(
-            f"DEBUG: No fascists found, choosing random player {getattr(chosen, 'id', 'UNKNOWN')}"
-        )
-        return chosen
+        return choice(eligible_players)
 
     def filter_policies(self, policies):
         """Keep fascist policies if possible"""
@@ -138,7 +118,9 @@ class FascistStrategy(PlayerStrategy):
         for p in eligible_players:
             # Skip fellow fascists
             if p.is_fascist:
-                continue  # Check if we've inspected them
+                continue
+
+            # Check if we've inspected them
             if p.id in self.player.inspected_players:
                 if self.player.inspected_players[p.id] == "liberal":
                     known_liberals.append(p)
@@ -283,27 +265,13 @@ class FascistStrategy(PlayerStrategy):
 
     def choose_revealer(self, eligible_players):
         """Choose a player to reveal party membership to (Impeachment)"""
-        # Debug: print all eligible players and their attributes
-        print(f"DEBUG: choose_revealer eligible_players:")
-        for p in eligible_players:
-            print(
-                f"  Player {getattr(p, 'id', 'UNKNOWN')}: is_fascist={getattr(p, 'is_fascist', 'MISSING')}, is_hitler={getattr(p, 'is_hitler', 'MISSING')}"
-            )
-
         # Choose a fellow fascist if possible
         fascists = [p for p in eligible_players if getattr(p, "is_fascist", False)]
-        print(f"DEBUG: Found {len(fascists)} fascist players")
         if fascists:
-            chosen = choice(fascists)
-            print(f"DEBUG: Choosing fascist player {getattr(chosen, 'id', 'UNKNOWN')}")
-            return chosen
+            return choice(fascists)
 
         # Otherwise choose randomly
-        chosen = choice(eligible_players)
-        print(
-            f"DEBUG: No fascists found, choosing random player {getattr(chosen, 'id', 'UNKNOWN')}"
-        )
-        return chosen
+        return choice(eligible_players)
 
     def pardon_player(self):
         """Decide whether to pardon a player marked for execution"""
