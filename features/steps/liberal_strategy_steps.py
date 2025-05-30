@@ -58,7 +58,7 @@ def step_impl_eligible_players_for_chancellor(context, count):
         context.eligible_players.append(player)
 
 
-@given("el jugador {player_id:d} es conocido como {affiliation}")
+@given("el jugador {player_id:d} es conocido como {affiliation} (liberal)")
 def step_impl_known_player_affiliation(context, player_id, affiliation):
     """Mark a player as having a known affiliation."""
     ensure_mock_player_setup(context)
