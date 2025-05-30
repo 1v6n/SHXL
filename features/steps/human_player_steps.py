@@ -235,7 +235,7 @@ def step_impl_two_policies_available(context, num_policies, policy_list):
     context.policies = [MockPolicy(policy_type) for policy_type in policy_types]
 
 
-@given("políticas disponibles para veto")
+@given("políticas disponibles para veto humano")
 def step_impl_policies_for_veto(context):
     """Create policies available for veto."""
     context.policies = [MockPolicy("fascist"), MockPolicy("communist")]
@@ -642,16 +642,7 @@ def step_impl_check_chosen_policy_position(context, position):
     assert discarded_count == 1
 
 
-@then("debe retornar True")
-def step_impl_check_return_true(context):
-    """Check result is True."""
-    assert context.result is True
-
-
-@then("debe retornar False")
-def step_impl_check_return_false(context):
-    """Check result is False."""
-    assert context.result is False
+# Note: "debe retornar True" and "debe retornar False" steps are defined in ai_player_steps.py
 
 
 @then("debe mostrar las {num_policies:d} políticas")

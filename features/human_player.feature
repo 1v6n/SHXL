@@ -43,7 +43,7 @@ Feature: Funcionalidad del jugador humano
 
   Scenario: Decisión de veto como canciller
     Given un jugador humano como canciller
-    And políticas disponibles para veto
+    And políticas disponibles para veto humano
     When el jugador humano decide veto con input "yes"
     Then debe retornar True
 
