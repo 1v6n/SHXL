@@ -322,9 +322,7 @@ def step_impl_player_marked_for_execution(context, affiliation):
 @given("una política {policy_type} como última descartada")
 def step_impl_last_discarded_policy(context, policy_type):
     """Set a policy as the last discarded policy."""
-    policy = Mock()
-
-    # Map Spanish terms to English terms expected by strategy
+    policy = Mock()  # Map Spanish terms to English terms expected by strategy
     policy_map = {"fascista": "fascist", "liberal": "liberal", "comunista": "communist"}
 
     english_policy_type = policy_map.get(policy_type, policy_type)
@@ -333,19 +331,10 @@ def step_impl_last_discarded_policy(context, policy_type):
     if not hasattr(context, "mock_player"):
         context.mock_player = Mock()
         context.mock_player.state = Mock()
-
     context.mock_player.state.last_discarded = policy
 
 
-@given("el estado tiene políticas fascistas y comunistas")
-def step_impl_state_has_fascist_and_communist(context):
-    """Set game state to have both fascist and communist policies."""
-    if not hasattr(context, "mock_player"):
-        context.mock_player = Mock()
-        context.mock_player.state = Mock()
-
-    context.mock_player.state.fascist_track = 2
-    context.mock_player.state.communist_track = 1
+# Note: "el estado tiene políticas fascistas y comunistas" step is defined in ai_player_steps.py
 
 
 @when("creo una estrategia liberal con el jugador")

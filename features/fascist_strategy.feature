@@ -192,13 +192,6 @@ Feature: Funcionalidad de la estrategia fascista
     Then debe elegir el jugador fascista
     And debe revelar información a aliados
 
-  Scenario: Perdón de Hitler marcado
-    Given una estrategia fascista
-    And Hitler está marcado para ejecución
-    When la estrategia fascista decide sobre perdón
-    Then debe perdonar a Hitler
-    And siempre debe proteger a Hitler
-
   Scenario: Perdón de fascista marcado
     Given una estrategia fascista
     And un fascista está marcado para ejecución

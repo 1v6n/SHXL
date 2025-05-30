@@ -253,15 +253,7 @@ def step_impl_player_not_fascist(context, player_id):
 # Use the existing implementation from liberal_strategy_steps.py
 # @given("una política {policy_type} para propaganda") - removed duplicate
 
-
-@given("Hitler está marcado para ejecución")
-def step_impl_hitler_marked_execution(context):
-    ensure_fascist_mock_player_setup(context)
-    hitler_player = Mock()
-    hitler_player.is_hitler = True
-    hitler_player.is_fascist = True
-    hitler_player.id = 99
-    context.mock_player.state.marked_for_execution = hitler_player
+# Note: "Hitler está marcado para ejecución" step is defined in ai_player_steps.py
 
 
 @given("un fascista está marcado para ejecución")
