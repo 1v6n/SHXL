@@ -4,7 +4,6 @@ import subprocess
 import sys
 import time
 
-import psutil
 import requests
 from behave import given, then, when
 
