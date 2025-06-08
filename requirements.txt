@@ -4,12 +4,28 @@ flask
 requests
 behave
 
+# Type checking stubs
+types-requests
+types-flask
+types-setuptools
+
 # Development and code quality
 black
 pylint
 isort
 mypy
 
+# Testing and BDD
+pytest
+pytest-cov
+
 # Documentation
 sphinx
 sphinx_rtd_theme
+
+# Optional: Development utilities
+python-dotenv
+click
+
+# Optional: Enhanced testing
+coverage

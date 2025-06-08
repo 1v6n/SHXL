@@ -4,3 +4,12 @@ target-version = ['py38']
 
 [tool.isort]
 profile = "black"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["behave.*", "flask.*", "requests.*", "psutil.*"]
+ignore_missing_imports = true

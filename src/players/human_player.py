@@ -35,7 +35,7 @@ class HumanPlayer(Player):
             print(f"  Hitler is {self.hitler.name}")
             if self.fascists:
                 print(
-                    f"  Your fellow fascists are: {', '.join([f'{p.name}' for p in self.fascists if p.id != self.player_id])}"
+                    f"  Your fellow fascists are: {', '.join([f'{p.name}' for p in self.fascists if p.id != self.id])}"
                 )
 
         if self.is_hitler and self.fascists:
@@ -54,8 +54,8 @@ class HumanPlayer(Player):
         # Show inspected players
         if self.inspected_players:
             print("\nPlayers you have inspected:")
-            for player_id, party in self.inspected_players.items():
-                print(f"  Player {player_id} is a member of the {party} party")
+            for id, party in self.inspected_players.items():
+                print(f"  Player {id} is a member of the {party} party")
 
         print(f"{'-'*60}\n")
 

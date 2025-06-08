@@ -1,10 +1,13 @@
-# src/roles/__init__.py
+# src/__init__.py
 
 
 """
 
 
-Role implementations
+Secret Hitler XL game implementation
 
 
 """
+
+
+__version__ = "0.1.0"
