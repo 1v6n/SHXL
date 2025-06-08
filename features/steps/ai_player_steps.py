@@ -62,7 +62,7 @@ class MockState:
         self.liberal_track = 0
 
     def get_eligible_chancellors(self):
-        return [p for p in self.active_players if p.player_id != 1]  # Exclude AI player
+        return [p for p in self.active_players if p.id != 1]  # Exclude AI player
 
 
 def ensure_ai_player_setup(context):
@@ -733,7 +733,7 @@ def step_impl_ai_choose_president_specific(context):
 # Then steps - Assertions
 @then("el jugador AI debe tener ID {player_id:d}")
 def step_impl_ai_has_id(context, player_id):
-    assert context.ai_player.player_id == player_id
+    assert context.ai_player.id == player_id
 
 
 @then('el jugador AI debe tener nombre "{name}"')

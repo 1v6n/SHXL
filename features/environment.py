@@ -1,10 +1,5 @@
-import random
-
-
-def before_scenario(context, scenario):
-    random.seed(42)
-
 import os
+import random
 import signal
 import subprocess
 
@@ -42,6 +37,9 @@ def after_scenario(context, scenario):
             print(f"⚠️  Error deteniendo servidor: {e}")
         finally:
             context.server_process = None
+
+def before_scenario(context, scenario):
+    random.seed(42)
 
 def after_all(context):
     """Limpiar al final de todos los tests"""
