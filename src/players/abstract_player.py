@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 class Player(ABC):
     """Enhanced player class to support all SHXL features"""
 
-    def __init__(self, player_id, name, role, state):
-        self.player_id = player_id
+    def __init__(self, id, name, role, state):
+        self.id = id
         self.name = name
         self.role = role
         self.state = state
@@ -47,7 +47,7 @@ class Player(ABC):
         return self.hitler is not None
 
     def __repr__(self):
-        return f"Player id:{self.player_id}, name:{self.name}, role:{self.role}"
+        return f"Player id:{self.id}, name:{self.name}, role:{self.role}"
 
     def initialize_role_attributes(self):
         """Initialize attributes based on the assigned role"""

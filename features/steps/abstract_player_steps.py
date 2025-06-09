@@ -193,7 +193,7 @@ def step_impl_hitler_not_assigned(context):
 @then("el jugador debe tener ID {player_id:d}")
 def step_impl_check_player_id(context, player_id):
     """Check player ID."""
-    assert context.player.player_id == player_id
+    assert context.player.id == player_id
 
 
 @then('el jugador debe tener nombre "{name}"')
@@ -356,7 +356,7 @@ def step_impl_check_knows_hitler_false(context):
 def step_impl_check_string_representation(context):
     """Check string representation contains required elements."""
     player_str = str(context.player)
-    assert str(context.player.player_id) in player_str
+    assert str(context.player.id) in player_str
     assert context.player.name in player_str
     assert str(context.player.role) in player_str
 

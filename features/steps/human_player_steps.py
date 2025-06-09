@@ -2,7 +2,6 @@ import io
 import sys
 from unittest.mock import Mock, patch
 
-# mypy: disable-error-code=import
 from behave import given, then, when
 
 from src.players.abstract_player import Player
@@ -577,7 +576,7 @@ def step_impl_non_numeric_input(context, input_value):
 @then("el jugador humano debe tener ID {player_id:d}")
 def step_impl_check_human_player_id(context, player_id):
     """Check human player ID."""
-    assert context.human_player.player_id == player_id
+    assert context.human_player.id == player_id
 
 
 @then('el jugador humano debe tener nombre "{name}"')
