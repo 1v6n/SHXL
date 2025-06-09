@@ -1,3 +1,10 @@
+"""
+SHXL Game API Server
+
+Este módulo proporciona una API REST para crear y gestionar partidas del juego SHXL.
+Permite crear nuevas salas de juego y que los jugadores se unan a ellas.
+"""
+
 import uuid
 
 from flask import Flask, jsonify, request
@@ -11,6 +18,27 @@ games = {}
 
 @app.route("/newgame", methods=["POST"])
 def create_new_game():
+    """Crea una nueva sala de juego SHXL.
+
+    Recibe los parámetros de configuración del juego y crea una nueva instancia
+    de SHXLGame. La sala se crea vacía, esperando que los jugadores se unan
+    antes de que comience la partida.
+
+    Returns:
+        tuple: Una tupla con la respuesta JSON y el código de estado HTTP.
+            La respuesta contiene:
+            - gameID (str): Identificador único de la partida (8 caracteres)
+            - maxPlayers (int): Número máximo de jugadores permitidos
+            - state (str): Estado actual del juego ("waiting_for_players")
+            - currentPlayers (int): Número actual de jugadores (siempre 0 al crear)
+
+    Request JSON:
+        playerCount (int, optional): Número máximo de jugadores (default: 10)
+        withCommunists (bool, optional): Incluir roles comunistas (default: True)
+        withAntiPolicies (bool, optional): Incluir políticas anti (default: True)
+        withEmergencyPowers (bool, optional): Incluir poderes de emergencia (default: True)
+        strategy (str, optional): Estrategia de IA para jugadores bot (default: "smart")
+    """
     data = request.json
     player_count = data.get("playerCount", 10)
     include_communists = data.get("withCommunists", True)
@@ -20,13 +48,15 @@ def create_new_game():
 
     game_id = str(uuid.uuid4())[:8]
     game = SHXLGame()
-    game.setup_game(
-        player_count,
-        include_communists,
-        with_anti_policies,
-        with_emergency_powers,
-        ai_strategy=strategy,
-    )
+
+    game.player_count = player_count
+    game.include_communists = include_communists
+    game.with_anti_policies = with_anti_policies
+    game.with_emergency_powers = with_emergency_powers
+    game.ai_strategy = strategy
+
+    game.state.player_factory = PlayerFactory()
+    game.state.players = []
 
     games[game_id] = game
 
@@ -34,9 +64,9 @@ def create_new_game():
         jsonify(
             {
                 "gameID": game_id,
-                "hostPlayerID": game.state.players[0].id,
                 "maxPlayers": player_count,
                 "state": "waiting_for_players",
+                "currentPlayers": 0,
             }
         ),
         201,
@@ -45,6 +75,33 @@ def create_new_game():
 
 @app.route("/games/<game_id>/join", methods=["POST"])
 def join_game(game_id):
+    """Permite a un jugador unirse a una sala de juego existente.
+
+    Valida que la sala exista, tenga espacio disponible y no haya comenzado
+    la partida. Crea un nuevo jugador humano y lo agrega a la lista de
+    participantes.
+
+    Args:
+        game_id (str): Identificador único de la sala de juego
+
+    Returns:
+        tuple: Una tupla con la respuesta JSON y el código de estado HTTP.
+            En caso de éxito (200):
+            - playerId (int): ID único del jugador dentro de la partida
+            - currentPlayers (int): Número actual de jugadores en la sala
+            - maxPlayers (int): Número máximo de jugadores permitidos
+
+            En caso de error (400/403/404):
+            - error (str): Descripción del error ocurrido
+
+    Request JSON:
+        playerName (str): Nombre del jugador que se quiere unir
+
+    Raises:
+        400: Si no se proporciona playerName
+        403: Si la sala está llena o el juego ya comenzó
+        404: Si la sala no existe
+    """
     data = request.get_json()
     player_name = data.get("playerName")
 
@@ -55,16 +112,20 @@ def join_game(game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
-    if game.state.game_started:
+    if game.state.president is not None:
         return jsonify({"error": "Game already in progress"}), 403
 
     if len(game.state.players) >= game.player_count:
         return jsonify({"error": "Game is full"}), 403
 
-    # Crear jugador humano
     new_id = len(game.state.players)
-    player = game.state.player_factory.create_single_player(
-        player_id=new_id, name=player_name, is_human=True
+    player = game.state.player_factory.create_player(
+        id=new_id,
+        name=player_name,
+        role=None,
+        state=game.state,
+        strategy_type="smart",
+        player_type="human",
     )
     game.state.players.append(player)
 
@@ -82,8 +143,24 @@ def join_game(game_id):
 
 @app.route("/health", methods=["GET"])
 def health_check():
+    """Endpoint de health check para verificar el estado del servidor.
+
+    Proporciona una forma simple de verificar que el servidor API está
+    funcionando correctamente.
+
+    Returns:
+        tuple: Una tupla con la respuesta JSON y el código de estado HTTP (200).
+            La respuesta contiene:
+            - status (str): Estado del servidor ("OK")
+            - message (str): Mensaje descriptivo
+    """
     return jsonify({"status": "OK", "message": "Server is running"}), 200
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    """Punto de entrada principal del servidor.
+
+    Inicia el servidor Flask en modo desarrollo con debug habilitado.
+    El servidor escucha en 127.0.0.1:5000 por defecto.
+    """
+    app.run(host="127.0.0.1", port=5000, debug=True)
