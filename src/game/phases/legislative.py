@@ -6,8 +6,8 @@ actions in the game.
 """
 
 from src.game.phases.abstract_phase import GamePhase
-
-# from src.game.phases.gameover import GameOverPhase
+from src.game.phases.election import ElectionPhase
+from src.game.phases.gameover import GameOverPhase
 
 
 class LegislativePhase(GamePhase):
@@ -43,7 +43,6 @@ class LegislativePhase(GamePhase):
                 - ElectionPhase: If veto succeeds or normal turn progression
                 - GameOverPhase: If win condition is met or Hitler is executed
         """
-        from src.game.phases.election import ElectionPhase
 
         policies = self.game.state.board.draw_policy(3)
 

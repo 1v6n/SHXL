@@ -141,6 +141,91 @@ def join_game(game_id):
     )
 
 
+@app.route("/games/<game_id>/start", methods=["POST"])
+def start_game(game_id):
+    """Inicia una partida cuando el anfitrión decide que están todos listos."""
+    data = request.get_json()
+    host_player_id = data.get("hostPlayerID")
+
+    if host_player_id is None:
+        return jsonify({"error": "Missing hostPlayerID"}), 400
+
+    game = games.get(game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    # Verificar que el solicitante es el anfitrión (primer jugador, ID = 0)
+    if host_player_id != 0:
+        return jsonify({"error": "Only the host can start the game"}), 403
+
+    # Verificar que hay al menos un jugador (el anfitrión)
+    if len(game.state.players) == 0:
+        return jsonify({"error": "No players in the game"}), 403
+
+    # Verificar que el anfitrión existe
+    host_player = next((p for p in game.state.players if p.id == 0), None)
+    if not host_player:
+        return jsonify({"error": "Host player not found"}), 403
+
+    # Verificar que el juego no haya comenzado ya
+    if hasattr(game.state, "game_state") and game.state.game_state == "in_progress":
+        return jsonify({"error": "Game already in progress"}), 403
+
+    if game.state.president is not None:
+        return jsonify({"error": "Game already in progress"}), 403
+
+    # Verificar mínimo de jugadores (SHXL requiere al menos 5)
+    min_players = 5
+    if len(game.state.players) < min_players:
+        return jsonify({"error": f"Need at least {min_players} players to start"}), 403
+
+    try:
+        # 🔧 ESTRATEGIA CORRECTA: Usar human_player_indices
+
+        # 1. Guardar información de jugadores humanos existentes
+        human_players_info = []
+        for player in game.state.players:
+            human_players_info.append({"id": player.id, "name": player.name})
+
+        # 2. Crear lista de índices de jugadores humanos
+        human_indices = [p["id"] for p in human_players_info]
+
+        # 3. Llamar setup_game con los parámetros correctos
+        game.setup_game(
+            player_count=game.player_count,
+            with_communists=game.include_communists,
+            with_anti_policies=game.with_anti_policies,
+            with_emergency_powers=game.with_emergency_powers,
+            human_player_indices=human_indices,  # ✅ Parámetro correcto
+            ai_strategy=game.ai_strategy,
+        )
+
+        # 4. Restaurar nombres de jugadores humanos
+        for human_info in human_players_info:
+            player_id = human_info["id"]
+            if player_id < len(game.state.players):
+                game.state.players[player_id].name = human_info["name"]
+
+        # 5. Cambiar estado del juego
+        game.state.game_state = "in_progress"
+
+        return (
+            jsonify(
+                {
+                    "message": "Game started successfully",
+                    "state": "in_progress",
+                    "currentPlayers": len(game.state.players),
+                    "roles_assigned": True,
+                    "deck_ready": True,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to start game: {str(e)}"}), 500
+
+
 @app.route("/health", methods=["GET"])
 def health_check():
     """Endpoint de health check para verificar el estado del servidor.

@@ -1,6 +1,5 @@
 from unittest.mock import Mock
 
-# mypy: disable-error-code=import
 from behave import given, then, when
 
 from src.game.game_state import EnhancedGameState
@@ -99,11 +98,9 @@ def step_impl_player_with_role_and_party(context, role_name, party):
 @given("un estado de juego con {num_players:d} jugadores")
 def step_impl_create_game_state_for_player(context, num_players):
     """Create a game state with specific number of players."""
-    # Use the real EnhancedGameState instead of a mock
     context.game_state = EnhancedGameState()
     context.players = []
 
-    # Create a mock board for compatibility with existing steps
     context.board = Mock()
     context.board.veto_available = context.game_state.veto_available
     context.board.liberal_track = context.game_state.liberal_track
@@ -367,7 +364,6 @@ def step_impl_check_abstract_method(context, method_name):
     assert hasattr(context.player, method_name)
     method = getattr(context.player, method_name)
     assert callable(method)
-    # For abstract methods, check that they exist in the original Player class
     assert hasattr(Player, method_name)
     original_method = getattr(Player, method_name)
     assert getattr(original_method, "__isabstractmethod__", False)

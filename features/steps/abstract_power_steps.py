@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-# mypy: disable-error-code=import
 from behave import given, then, when
 
 from src.game.powers.abstract_power import (

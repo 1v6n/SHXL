@@ -1,6 +1,5 @@
 from random import shuffle
 
-# !This can be used to balance the game
 VETO_POWER_THRESHOLD = 5
 
 
@@ -20,23 +19,19 @@ class GameBoard(object):
         self.player_count = player_count
         self.with_communists = with_communists
 
-        # Initialize policy trackers
-        self.liberal_track_size = 5  # Default size
-        self.fascist_track_size = 6  # Always 6
+        self.liberal_track_size = 5
+        self.fascist_track_size = 6
         self.communist_track_size = self._get_communist_track_size()
 
-        # Initialize policy counts
         self.liberal_track = 0
         self.fascist_track = 0
         self.communist_track = 0
         self.policies = []
         self.discards = []
 
-        # Set up power slots based on player count
         self.fascist_powers = self._setup_fascist_powers()
         self.communist_powers = self._setup_communist_powers()
 
-        # Store Veto flag, which becomes available after 5 fascist policies
         self.veto_available = False
 
     def _get_communist_track_size(self):
@@ -121,19 +116,15 @@ class GameBoard(object):
             list: List of drawn policies
         """
 
-        # If there are not enough policies to be drawn, shuffle the remaining policies with the discard pile
         if len(self.policies) < count:
-            # Add the discard pile into the draw pile
             self.policies.extend(self.discards)
             self.discards = []
             shuffle(self.policies)
 
-        # Draw policies one by one to ensure they're unique objects
         drawn = []
         for _ in range(count):
             drawn.append(self.policies.pop(0))
 
-        # Chaos policies
         if count > 1:
             print("Drawing chaos policy")
 
@@ -172,30 +163,23 @@ class GameBoard(object):
         elif policy_type == "fascist":
             self.fascist_track += 1
 
-            # Sync the game state's fascist track with the board's
             self.state.fascist_track = self.fascist_track
 
-            # Check for power
             power = self.get_fascist_power() if not chaos else None
 
-            # Check for win
             if self.fascist_track >= self.fascist_track_size:
                 self.state.game_over = True
                 self.state.winner = "fascist"
 
-            # Check for veto power
             if self.fascist_track >= VETO_POWER_THRESHOLD:
                 self.veto_available = True
 
         elif policy_type == "communist":
             self.communist_track += 1
 
-            # Sync the game state's fascist track with the board's
             self.state.communist_track = self.communist_track
 
-            # Check for power
             power = self.get_communist_power() if not chaos else None
-            # Check for win
             if (
                 self.communist_track >= self.communist_track_size
                 and self.communist_track_size > 0
@@ -205,37 +189,29 @@ class GameBoard(object):
 
         if antipolicies is True:
             if policy_type == "antifascist":
-                # Goes on communist track, removes a fascist policy
                 self.communist_track += 1
                 if self.fascist_track > 0:
                     self.fascist_track -= 1
 
-                    # Sync the game state's fascist track with the board's
                     self.state.fascist_track = self.fascist_track
 
                     if self.fascist_track < VETO_POWER_THRESHOLD:
                         self.veto_available = False
 
-                # Block next fascist power
                 self.state.block_next_fascist_power = True
 
             elif policy_type == "anticommunist":
-                # Goes on fascist track, removes a communist policy
                 self.fascist_track += 1
 
-                # Sync the game state's fascist track with the board's
                 self.state.fascist_track = self.fascist_track
 
                 if self.communist_track > 0:
                     self.communist_track -= 1
 
-                # Block next communist power
                 self.state.block_next_communist_power = True
 
             elif policy_type == "socialdemocratic":
-                # Goes on liberal track, removes fascist or communist policy
                 self.liberal_track += 1
-                # Chancellor chooses which policy to remove
                 remove = self.state.chancellor.social_democratic_removal_choice(
                     self.state
                 )
@@ -243,7 +219,6 @@ class GameBoard(object):
                     if self.fascist_track > 0:
                         self.fascist_track -= 1
 
-                    # Sync the game state's fascist track with the board's
                     self.state.fascist_track = self.fascist_track
 
                     if self.fascist_track < VETO_POWER_THRESHOLD:
@@ -257,23 +232,18 @@ class GameBoard(object):
 
         if emergency is True:
             if policy_type == "article48":
-                # President executes Article 48 powers
                 print(
                     f"President {self.state.president.name} executed Article 48 powers."
                 )
             elif policy_type == "enablingact":
-                # Chancellor executes Enabling Act powers
                 print(
                     f"Chancellor {self.state.chancellor.name} executed Enabling Act powers."
                 )
 
-        # Store the most recently enacted policy
         self.state.most_recent_policy = policy
 
-        # Track the policy enactment for statistics
         if not hasattr(self.state, "policy_history"):
             self.state.policy_history = []
-        # Record this policy enactment
         self.state.policy_history.append(
             {
                 "policy": policy_type,
@@ -298,7 +268,6 @@ class GameBoard(object):
         Returns:
             str or None: The power to use
         """
-        # Check if power should be blocked
         if self.state.block_next_fascist_power:
             self.state.block_next_fascist_power = False
             return None
@@ -314,7 +283,6 @@ class GameBoard(object):
         Returns:
             str or None: The power to use
         """
-        # Check if power should be blocked
         if self.state.block_next_communist_power:
             self.state.block_next_communist_power = False
             return None
