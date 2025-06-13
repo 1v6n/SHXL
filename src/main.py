@@ -2,6 +2,7 @@ import argparse
 from random import seed
 
 from src.game.game import SHXLGame
+from src.game.game_logger import GameLogger, LogLevel
 from src.players.player_factory import PlayerFactory
 
 
@@ -16,42 +17,29 @@ def run_game(
 ):
     """
 
-
     Run a game of Secret Hitler XL with the given parameters
-
-
 
 
 
     Args:
 
-
         players (int): Number of players (6-16)
-
 
         with_communists (bool): Whether to include communists
 
-
         with_anti_policies (bool): Whether to include anti-policies
-
 
         with_emergency_powers (bool): Whether to include emergency powers
 
-
         strategy (str): Strategy type for AI players ("random", "role", "smart")
-
 
         human_players (list): List of player IDs that should be human-controlled
 
 
 
-
-
     Returns:
 
-
         str: Game result
-
 
     """
 
@@ -61,7 +49,7 @@ def run_game(
 
         raise ValueError("Player count must be between 6 and 16")
 
-    game = SHXLGame()  # Set up the game
+    game = SHXLGame(logger=logger)  # Set up the game
 
     game.setup_game(
         players,
@@ -75,8 +63,6 @@ def run_game(
     # Run the game
 
     result = game.start_game()
-    print("\n===== Game Over =====")
-    print(f"Result: {result}\n")
 
     return result
 
@@ -340,10 +326,24 @@ def main():
     )
 
     parser.add_argument(
+        "--log-level",
+        type=str,
+        choices=[l.name.lower() for l in LogLevel],
+        default="normal",
+        help="Logging level",
+    )
+
+    parser.add_argument(
         "--interactive", "-i", action="store_true", help="Use interactive setup"
     )
 
     args = parser.parse_args()
+
+    # build logger from CLI arg
+
+    selected_level = LogLevel[args.log_level.upper()]
+
+    cli_logger = GameLogger(selected_level)
 
     # Determine if we should use interactive setup
 
@@ -364,6 +364,7 @@ def main():
             with_emergency_powers=config["with_emergency_powers"],
             strategy=config["strategy"],
             human_players=config["human_players"],
+            logger=cli_logger,
         )
 
     else:
@@ -403,6 +404,7 @@ def main():
             with_emergency_powers=args.emergency_powers,
             strategy=args.strategy,
             human_players=human_players,
+            logger=cli_logger,
         )
 
 
