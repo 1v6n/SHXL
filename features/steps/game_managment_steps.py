@@ -376,3 +376,276 @@ def step_impl_error_message(context, error_message):
     assert "error" in body, f"No error field in response: {body}"
     assert body["error"] == error_message, \
         f"Expected error '{error_message}', got '{body['error']}'"
+
+# Agregar estos steps al final del archivo
+
+# ============================================================================
+# STEPS PARA INICIAR PARTIDA
+# ============================================================================
+
+@given('se han unido {player_count:d} jugadores a la sala')
+def step_impl_add_players_to_room(context, player_count):
+    """Agregar jugadores humanos a la sala actual.
+
+    Agrega el número especificado de jugadores humanos a la sala
+    guardada en context.current_game_id.
+
+    Args:
+        context: Contexto que debe contener current_game_id
+        player_count (int): Número de jugadores a agregar
+
+    Requires:
+        context.current_game_id: ID de la sala existente
+
+    Side Effects:
+        - Agrega jugadores con nombres Player1, Player2, etc.
+        - context.current_players_added guarda el número agregado
+
+    Example:
+        Given se han unido 5 jugadores a la sala
+    """
+    for i in range(player_count):
+        payload = {"playerName": f"Player{i+1}"}
+        response = requests.post(
+            f"{context.base_url}/games/{context.current_game_id}/join",
+            json=payload,
+            timeout=10
+        )
+        assert response.status_code == 200, f"Failed to add player {i+1}: {response.text}"
+
+    context.current_players_added = player_count
+
+
+@given('la partida ya ha sido iniciada')
+def step_impl_game_already_started(context):
+    """Marcar la partida como ya iniciada.
+
+    Inicia la partida actual para poder probar scenarios donde se
+    intenta iniciar una partida que ya está en progreso.
+
+    Args:
+        context: Contexto que debe contener current_game_id
+
+    Requires:
+        context.current_game_id: ID de la sala con jugadores suficientes
+
+    Side Effects:
+        - La partida cambia a estado "in_progress"
+
+    Example:
+        Given la partida ya ha sido iniciada
+    """
+    payload = {"hostPlayerID": 0}
+    response = requests.post(
+        f"{context.base_url}/games/{context.current_game_id}/start",
+        json=payload,
+        timeout=10
+    )
+    assert response.status_code == 200, f"Failed to start game: {response.text}"
+
+
+@when('el anfitrión envía una petición POST para iniciar la partida')
+def step_impl_host_starts_game(context):
+    """El anfitrión inicia la partida.
+
+    Envía una petición para iniciar la partida usando hostPlayerID = 0
+    (el anfitrión siempre es el primer jugador).
+
+    Args:
+        context: Contexto que debe contener current_game_id
+
+    Requires:
+        context.current_game_id: ID de la sala existente
+
+    Side Effects:
+        - context.response contiene la respuesta HTTP del servidor
+
+    Example:
+        When el anfitrión envía una petición POST para iniciar la partida
+    """
+    payload = {"hostPlayerID": 0}
+    context.response = requests.post(
+        f"{context.base_url}/games/{context.current_game_id}/start",
+        json=payload,
+        timeout=10
+    )
+
+
+@when('un jugador no-anfitrión envía una petición POST para iniciar la partida')
+def step_impl_non_host_starts_game(context):
+    """Un jugador que no es anfitrión intenta iniciar la partida.
+
+    Envía una petición para iniciar usando un hostPlayerID != 0 para
+    probar que solo el anfitrión puede iniciar la partida.
+
+    Args:
+        context: Contexto que debe contener current_game_id
+
+    Side Effects:
+        - context.response contiene la respuesta HTTP (esperada: 403)
+
+    Example:
+        When un jugador no-anfitrión envía una petición POST para iniciar la partida
+    """
+    payload = {"hostPlayerID": 1}  # No es el anfitrión
+    context.response = requests.post(
+        f"{context.base_url}/games/{context.current_game_id}/start",
+        json=payload,
+        timeout=10
+    )
+
+
+@when('se envía una petición POST sin hostPlayerID para iniciar la partida')
+def step_impl_start_game_no_host_id(context):
+    """Iniciar partida sin proporcionar hostPlayerID.
+
+    Envía una petición sin el campo requerido hostPlayerID para probar
+    la validación de parámetros.
+
+    Args:
+        context: Contexto que debe contener current_game_id
+
+    Side Effects:
+        - context.response contiene la respuesta HTTP (esperada: 400)
+
+    Example:
+        When se envía una petición POST sin hostPlayerID para iniciar la partida
+    """
+    payload = {}  # Sin hostPlayerID
+    context.response = requests.post(
+        f"{context.base_url}/games/{context.current_game_id}/start",
+        json=payload,
+        timeout=10
+    )
+
+
+@then('el cuerpo contiene state "{expected_state}"')
+def step_impl_body_contains_state(context, expected_state):
+    """Verificar el estado del juego en la respuesta.
+
+    Valida que la respuesta JSON contiene el campo state con
+    el valor esperado.
+
+    Args:
+        context: Contexto con la respuesta HTTP JSON
+        expected_state (str): Estado esperado del juego
+
+    Raises:
+        AssertionError: Si state no existe o no coincide
+
+    Example:
+        Then el cuerpo contiene state "in_progress"
+    """
+    body = context.response.json()
+    assert "state" in body, f"No state field in response: {body}"
+    assert body["state"] == expected_state, \
+        f"Expected state '{expected_state}', got '{body['state']}'"
+
+
+@then('el cuerpo contiene roles_assigned {expected_value}')
+def step_impl_body_contains_roles_assigned(context, expected_value):
+    """Verificar que los roles han sido asignados.
+
+    Valida que la respuesta contiene roles_assigned con el valor
+    booleano esperado.
+
+    Args:
+        context: Contexto con la respuesta HTTP JSON
+        expected_value (str): "true" o "false"
+
+    Raises:
+        AssertionError: Si roles_assigned no existe o no coincide
+
+    Example:
+        Then el cuerpo contiene roles_assigned true
+    """
+    body = context.response.json()
+    expected_bool = expected_value.lower() == "true"
+    assert "roles_assigned" in body, f"No roles_assigned field in response: {body}"
+    assert body["roles_assigned"] == expected_bool, \
+        f"Expected roles_assigned {expected_bool}, got {body['roles_assigned']}"
+
+
+@then('el cuerpo contiene deck_ready {expected_value}')
+def step_impl_body_contains_deck_ready(context, expected_value):
+    """Verificar que el mazo está listo.
+
+    Valida que la respuesta contiene deck_ready con el valor
+    booleano esperado.
+
+    Args:
+        context: Contexto con la respuesta HTTP JSON
+        expected_value (str): "true" o "false"
+
+    Raises:
+        AssertionError: Si deck_ready no existe o no coincide
+
+    Example:
+        Then el cuerpo contiene deck_ready true
+    """
+    body = context.response.json()
+    expected_bool = expected_value.lower() == "true"
+    assert "deck_ready" in body, f"No deck_ready field in response: {body}"
+    assert body["deck_ready"] == expected_bool, \
+        f"Expected deck_ready {expected_bool}, got {body['deck_ready']}"
+
+@when('el anfitrión envía una petición POST a /games/invalid123/start')
+def step_impl_start_invalid_game(context):
+    """Intentar iniciar un juego con ID inválido.
+
+    Envía una petición para iniciar una partida usando un gameID que
+    no existe, para probar el manejo de errores 404.
+
+    Args:
+        context: Contexto de Behave con información compartida
+
+    Side Effects:
+        - context.response contiene la respuesta HTTP (esperada: 404)
+
+    Example:
+        When el anfitrión envía una petición POST a /games/invalid123/start
+    """
+    payload = {"hostPlayerID": 0}
+    context.response = requests.post(
+        f"{context.base_url}/games/invalid123/start",
+        json=payload,
+        timeout=10
+    )
+
+
+@when('se unen {player_count:d} jugadores adicionales a la sala')
+def step_impl_add_additional_players(context, player_count):
+    """Agregar jugadores adicionales a la sala.
+
+    Agrega el número especificado de jugadores adicionales a la sala
+    actual. Útil para scenarios de flujo completo donde ya hay algunos
+    jugadores y se necesitan más.
+
+    Args:
+        context: Contexto que debe contener current_game_id
+        player_count (int): Número de jugadores adicionales a agregar
+
+    Requires:
+        context.current_game_id: ID de la sala existente
+
+    Side Effects:
+        - Agrega jugadores con nombres ExtraPlayer1, ExtraPlayer2, etc.
+        - Actualiza context.current_players_added con el total
+
+    Example:
+        When se unen 5 jugadores adicionales a la sala
+    """
+    # Obtener el número base de jugadores ya agregados
+    base_number = getattr(context, 'current_players_added', 0)
+
+    for i in range(player_count):
+        payload = {"playerName": f"ExtraPlayer{base_number + i + 1}"}
+        response = requests.post(
+            f"{context.base_url}/games/{context.current_game_id}/join",
+            json=payload,
+            timeout=10
+        )
+        assert response.status_code == 200, f"Failed to add extra player {i+1}: {response.text}"
+
+    # Actualizar contador total de jugadores agregados
+    context.current_players_added = base_number + player_count

@@ -43,8 +43,8 @@ class ElectionPhase(GamePhase):
             - Term limit resets
             - Election tracker management
         """
-        # from src.game.phases.gameover import GameOverPhase
-        # from src.game.phases.legislative import LegislativePhase
+        from src.game.phases.gameover import GameOverPhase
+        from src.game.phases.legislative import LegislativePhase
 
         self._check_marked_for_execution()
 
