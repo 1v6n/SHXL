@@ -165,6 +165,17 @@ class GameLogger:
                 "Communist track size: %d", game.state.board.communist_track_size
             )
 
+        # Log the starting month
+        self.logger.info(
+            "\n🗓️ The game begins in %s!", game.state.get_current_month_name()
+        )
+
+        # Check if we're starting in Oktober Fest month
+        if game.state.month_counter == 10:
+            self.logger.info(
+                "🍺 Starting in October - Oktober Fest is active from the beginning! All bots will use random strategy! 🍺"
+            )
+
     def log_player_roles(self, players, level=LogLevel.DEBUG):
         """
 
@@ -943,3 +954,36 @@ class GameLogger:
         self.logger.info("\n===== POLICY DECK SHUFFLED =====\n")
 
         self.logger.info("Policies in deck: %s", policies)
+
+    def log_month_change(self, game, level=LogLevel.NORMAL):
+        """
+        Log the change of month in the game state
+        Args:
+            game_state: The current game state
+        """
+
+        if level.value > self.level.value:
+
+            return
+
+        if hasattr(self, "logger"):
+            self.logger.info("\n📅 %s begins...", game.state.get_current_month_name())
+        if (
+            game.state.month_counter == 10
+            and not game.was_oktoberfest_active
+            and game.state.oktoberfest_active
+        ):
+            self.logger.info(
+                "\n🍺 OKTOBER FEST HAS BEGUN IN %s! All bots are now using random strategy for this month! 🍺",
+                game.state.get_current_month_name().upper(),
+            )
+        elif (
+            game.old_month == 10
+            and game.state.month_counter == 11
+            and not game.state.oktoberfest_active
+        ):
+            old_month_name = game.state.get_month_name(game.old_month)
+            self.logger.info(
+                "\n🍺 OKTOBER FEST HAS ENDED! %s is over and all bots have returned to their original strategies! 🍺",
+                old_month_name,
+            )

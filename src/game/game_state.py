@@ -1,3 +1,6 @@
+from random import randint
+
+
 class EnhancedGameState:
     """Enhanced game state to support all SHXL features"""
 
@@ -56,7 +59,7 @@ class EnhancedGameState:
             None  # Current policies being considered by chancellor/president
         )
         self.current_policies = []  # Month counter and Oktober Fest tracking
-        self.month_counter = 1  # Starts at month 1
+        self.month_counter = randint(1, 12)  # Starts at month 1
         self.oktoberfest_active = False  # Whether Oktober Fest is currently active
         self.original_strategies = {}  # Store original strategies during Oktober Fest
 

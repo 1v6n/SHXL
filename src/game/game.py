@@ -49,6 +49,9 @@ class SHXLGame:
 
         self.hitler_player = None  # Initialize hitler_player attribute
 
+        self.was_oktoberfest_active = self.state.oktoberfest_active
+        self.old_month = self.state.month_counter
+
     def setup_game(
         self,
         player_count,
@@ -125,6 +128,11 @@ class SHXLGame:
         self.choose_first_president()
 
         self.logger.log_game_setup(self)
+
+        # Check if we're starting in Oktober Fest month
+        if self.state.month_counter == 10:
+            # Manually trigger Oktober Fest since we're starting in October
+            self.state._start_oktoberfest()
 
         # Enter the election phase
 
@@ -276,31 +284,12 @@ class SHXLGame:
         """Set the next president based on rotation"""
 
         # Check if Oktober Fest was just starting before advancing
-        was_oktoberfest_active = self.state.oktoberfest_active
-        old_month = self.state.month_counter
+        self.was_oktoberfest_active = self.state.oktoberfest_active
+        self.old_month = self.state.month_counter
 
-        self.state.set_next_president()  # Log month progression
-        if hasattr(self, "logger"):
-            self.logger.log(
-                f"\n📅 {self.state.get_current_month_name()} begins..."
-            )  # Log Oktober Fest events
-        if (
-            self.state.month_counter == 10
-            and not was_oktoberfest_active
-            and self.state.oktoberfest_active
-        ):
-            self.logger.log(
-                f"\n🍺 OKTOBER FEST HAS BEGUN IN {self.state.get_current_month_name().upper()}! All bots are now using random strategy for this month! 🍺"
-            )
-        elif (
-            old_month == 10
-            and self.state.month_counter == 11
-            and not self.state.oktoberfest_active
-        ):
-            old_month_name = self.state.get_month_name(old_month)
-            self.logger.log(
-                f"\n🍺 OKTOBER FEST HAS ENDED! {old_month_name} is over and all bots have returned to their original strategies! 🍺"
-            )
+        self.state.set_next_president()
+
+        self.logger.log_month_change(self)
 
     def advance_turn(self):
         """
