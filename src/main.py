@@ -10,7 +10,7 @@ def run_game(
     with_communists=True,
     with_anti_policies=False,
     with_emergency_powers=False,
-    strategy="smart",
+    strategy="role",
     human_players=None,
     logger=None,  # add logger parameter
 ):
@@ -155,7 +155,7 @@ def select_game_mode():
             "with_communists": True,
             "with_anti_policies": True,
             "with_emergency_powers": True,
-            "strategy": "smart",
+            "strategy": "role",
             "human_players": human_players,
         }
 
@@ -367,7 +367,7 @@ def main():
     parser.add_argument(
         "--strategy",
         type=str,
-        default="smart",
+        default="role",
         choices=["random", "role", "smart"],
         help="AI strategy type",
     )

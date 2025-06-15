@@ -43,7 +43,7 @@ class SHXLGame:
 
         self.human_player_indices = []  # Initialize human player indices
 
-        self.ai_strategy = "smart"  # Default to smart strategy for AI players
+        self.ai_strategy = "role"  # Default to smart strategy for AI players
 
         self.player_count = 0  # Initialize player_count attribute
 
@@ -59,7 +59,7 @@ class SHXLGame:
         with_anti_policies=False,
         with_emergency_powers=False,
         human_player_indices=None,
-        ai_strategy="smart",
+        ai_strategy="role",
     ):
         """
 
