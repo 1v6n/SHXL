@@ -127,6 +127,15 @@ def step_given_current_phase_execute(context):
     context.phase_mock = phase_mock
     context.game.current_phase = phase_mock
 
+    # Set up required mocks for the logger
+    context.game.hitler_player = Mock(name="HitlerPlayer")
+    context.game.hitler_player.name = "MockHitler"
+    context.game.state.players = [Mock(name="Player1"), Mock(name="Player2")]
+    for i, player in enumerate(context.game.state.players):
+        player.name = f"Player{i+1}"
+        player.role = Mock()
+        player.role.name = f"Role{i+1}"
+
 
 @given('state.winner is "{winner}"')
 def step_given_state_winner(context, winner):
@@ -631,6 +640,13 @@ def step_given_active_players_votes(context, votes):
     context.game.state.active_players = mock_players
     context.expected_votes = vote_list
 
+    # Set up required mocks for election logging
+    context.game.state.president_candidate = Mock(name="MockPresident")
+    context.game.state.president_candidate.name = "President"
+    context.game.state.chancellor_candidate = Mock(name="MockChancellor")
+    context.game.state.chancellor_candidate.name = "Chancellor"
+    context.game.state.round_number = 1
+
 
 @when("llamo a vote_on_government")
 def step_when_llamo_vote_on_government(context):
@@ -1121,6 +1137,10 @@ def step_given_power_registry_get_power_chancellor_propaganda(context):
     with patch("src.game.game.PowerRegistry") as mock_registry:
         mock_registry.get_power.return_value = context.mock_power
         context.mock_registry = mock_registry
+
+    # Set up required state for chancellor power logging
+    context.game.state.chancellor = Mock(name="MockChancellor")
+    context.game.state.chancellor.name = "Chancellor"
 
 
 @given("mock_power.execute() retorna viewed_policy")

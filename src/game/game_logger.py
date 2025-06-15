@@ -230,7 +230,15 @@ class GameLogger:
                     player.role,
                 )
 
-    def log_election(self, president, chancellor, votes, result, level=LogLevel.NORMAL):
+    def log_election(
+        self,
+        president,
+        chancellor,
+        votes,
+        result,
+        active_players=None,
+        level=LogLevel.NORMAL,
+    ):
         """
 
 
@@ -318,9 +326,9 @@ class GameLogger:
 
         self.logger.info("Individual votes:")
 
-        for player, vote in zip(president.state.active_players, votes):
-
-            self.logger.info("  Player %d: %s", player.id, "Ja" if vote else "Nein")
+        if active_players:
+            for player, vote in zip(active_players, votes):
+                self.logger.info("  Player %d: %s", player.id, "Ja" if vote else "Nein")
 
         self.logger.info("Result: %s", "Passed" if result else "Failed")
 

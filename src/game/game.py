@@ -392,6 +392,7 @@ class SHXLGame:
             self.state.chancellor_candidate,
             self.state.last_votes,
             vote_passed,
+            self.state.active_players,
         )
 
         return vote_passed
