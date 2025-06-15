@@ -275,7 +275,32 @@ class SHXLGame:
     def set_next_president(self):
         """Set the next president based on rotation"""
 
-        self.state.set_next_president()
+        # Check if Oktober Fest was just starting before advancing
+        was_oktoberfest_active = self.state.oktoberfest_active
+        old_month = self.state.month_counter
+
+        self.state.set_next_president()  # Log month progression
+        if hasattr(self, "logger"):
+            self.logger.log(
+                f"\n📅 {self.state.get_current_month_name()} begins..."
+            )  # Log Oktober Fest events
+        if (
+            self.state.month_counter == 10
+            and not was_oktoberfest_active
+            and self.state.oktoberfest_active
+        ):
+            self.logger.log(
+                f"\n🍺 OKTOBER FEST HAS BEGUN IN {self.state.get_current_month_name().upper()}! All bots are now using random strategy for this month! 🍺"
+            )
+        elif (
+            old_month == 10
+            and self.state.month_counter == 11
+            and not self.state.oktoberfest_active
+        ):
+            old_month_name = self.state.get_month_name(old_month)
+            self.logger.log(
+                f"\n🍺 OKTOBER FEST HAS ENDED! {old_month_name} is over and all bots have returned to their original strategies! 🍺"
+            )
 
     def advance_turn(self):
         """

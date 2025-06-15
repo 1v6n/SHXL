@@ -245,16 +245,15 @@ class GameLogger:
 
 
         """
-
-        if level.value > self.level.value:
-
-            return
-
         self.election_count += 1
 
         if not result:
 
             self.failed_elections += 1
+
+        if level.value > self.level.value:
+
+            return
 
         ja_votes = sum(1 for v in votes if v)
 
