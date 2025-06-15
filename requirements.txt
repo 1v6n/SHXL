@@ -3,6 +3,7 @@ setuptools
 flask
 requests
 behave
+matplotlib
 
 # Type checking stubs
 types-requests

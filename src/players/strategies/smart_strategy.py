@@ -55,15 +55,17 @@ class SmartStrategy(PlayerStrategy):
                 and self.player.inspected_players[p.id] == "liberal"
             ]
             if known_liberals:
-                return choice(known_liberals)
-
-            # Avoid players who have enacted fascist policies
+                return choice(
+                    known_liberals
+                )  # Avoid players who have enacted fascist policies
             suspicious_players = set()
             if hasattr(self.player.state, "policy_history"):
                 for policy_data in self.player.state.policy_history:
                     if policy_data["policy"] == "fascist":
-                        suspicious_players.add(policy_data["president"].id)
-                        suspicious_players.add(policy_data["chancellor"].id)
+                        if policy_data["president"] is not None:
+                            suspicious_players.add(policy_data["president"].id)
+                        if policy_data["chancellor"] is not None:
+                            suspicious_players.add(policy_data["chancellor"].id)
 
             non_suspicious = [
                 p for p in eligible_players if p.id not in suspicious_players
@@ -371,15 +373,15 @@ class SmartStrategy(PlayerStrategy):
                 and self.player.inspected_players[p.id] == "fascist"
             ]
             if known_fascists:
-                return choice(known_fascists)
-
-            # Try to kill suspicious players
+                return choice(known_fascists)  # Try to kill suspicious players
             suspicious_players = set()
             if hasattr(self.player.state, "policy_history"):
                 for policy_data in self.player.state.policy_history:
                     if policy_data["policy"] == "fascist":
-                        suspicious_players.add(policy_data["president"].id)
-                        suspicious_players.add(policy_data["chancellor"].id)
+                        if policy_data["president"] is not None:
+                            suspicious_players.add(policy_data["president"].id)
+                        if policy_data["chancellor"] is not None:
+                            suspicious_players.add(policy_data["chancellor"].id)
 
             suspicious_candidates = [
                 p for p in eligible_players if p.id in suspicious_players
