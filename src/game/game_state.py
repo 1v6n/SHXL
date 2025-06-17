@@ -7,20 +7,21 @@ class EnhancedGameState:
         self.winner = None
         self.round_number = 0
 
+        # 🔧 ADD: Phase tracking attributes
+        self.current_phase_name = "setup"  # Fase actual como string simple
+
         # Players
         self.players = []  # All players
         self.active_players = []  # Non-dead players
 
         # Election-phase related
-        self.president = None  # Current president
-        self.president_candidate = None  # Current candidate
-        self.chancellor = None  # Current chancellor
-        self.chancellor_candidate = None  # Current candidate
-        self.election_tracker = 0  # Number of failed elections
-        self.last_votes = []  # Votes from last election
-        self.term_limited_players = (
-            []
-        )  # Players who can't be chancellor in the current round (last elected government)
+        self.president = None
+        self.president_candidate = None
+        self.chancellor = None
+        self.chancellor_candidate = None
+        self.election_tracker = 0
+        self.last_votes = []
+        self.term_limited_players = []
 
         # Special election
         self.special_election = False
@@ -56,6 +57,10 @@ class EnhancedGameState:
 
         # Current policies being considered by chancellor/president
         self.current_policies = []
+
+    def set_phase(self, phase_name):
+        """Cambiar la fase actual - SIMPLE"""
+        self.current_phase_name = phase_name
 
     def reset_election_tracker(self):
         """Reset the election tracker to 0"""

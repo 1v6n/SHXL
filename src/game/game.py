@@ -126,9 +126,10 @@ class SHXLGame:
 
         self.logger.log_game_setup(self)
 
-        # Enter the election phase
+        from src.game.phases.setup import SetupPhase
 
         self.current_phase = SetupPhase(self)
+        self.state.set_phase("setup")
 
     def initialize_board(self, players, communist_flag):
         """Initialize the game board"""
@@ -148,19 +149,49 @@ class SHXLGame:
 
         """
 
+        if self.state.current_phase_name == "setup":
+            from src.game.phases.election import ElectionPhase
+
+            self.current_phase = ElectionPhase(self)
+            self.state.set_phase("election")
+
         # Run phases until game is over
 
         while not self.state.game_over:
+            next_phase = self.current_phase.execute()
+            self.current_phase = next_phase
 
-            self.current_phase = self.current_phase.execute()
-
+            # 🔧 SIMPLE: Solo actualizar string
+            if isinstance(next_phase, type(self.current_phase)):
+                # Misma fase, no cambiar
+                pass
+            else:
+                # Nueva fase, actualizar
+                new_phase_name = next_phase.__class__.__name__.lower().replace(
+                    "phase", ""
+                )
+                self.state.set_phase(new_phase_name)
         # End of game
-
+        self.state.transition_to_phase("game_over")
         self.logger.log_game_end(self.state.winner, self.state.players, self)
 
         # Return the winner
 
         return self.state.winner
+
+    def get_current_phase_info(self):
+        """SIMPLE - Obtener info de fase actual"""
+        if not self.current_phase:
+            return {
+                "name": self.state.current_phase_name,
+                "class": "Unknown",
+                "can_advance": False,
+            }
+
+        phase_class = self.current_phase.__class__.__name__
+        phase_name = phase_class.lower().replace("phase", "")
+
+        return {"name": phase_name, "class": phase_class, "can_advance": True}
 
     def assign_players(self):
         """
@@ -265,12 +296,23 @@ class SHXLGame:
 
     def choose_first_president(self):
         """Choose the first president randomly"""
-
-        # Random player becomes president candidate
-
+        # 🔧 FIX: Set both president AND president_candidate to the same player
         random_index = randint(0, len(self.state.active_players) - 1)
+        chosen_president = self.state.active_players[random_index]
 
-        self.state.president_candidate = self.state.active_players[random_index]
+        # Set BOTH president and president_candidate to the same player
+        self.state.president = chosen_president
+        self.state.president_candidate = chosen_president
+
+        # Ensure no chancellor is set initially
+        self.state.chancellor = None
+        self.state.chancellor_candidate = None
+
+        # Initialize government tracking if not present
+        if not hasattr(self.state, "government_history"):
+            self.state.government_history = []
+        if not hasattr(self.state, "previous_government"):
+            self.state.previous_government = None
 
     def set_next_president(self):
         """Set the next president based on rotation"""
@@ -279,18 +321,15 @@ class SHXLGame:
 
     def advance_turn(self):
         """
-
         Advance the game to the next turn.
-
         Increments the round number and sets the next president.
-
-        Used primarily for testing the game flow.
-
         """
-
         self.state.round_number += 1
-
         self.set_next_president()
+
+        # 🔧 Ensure president_candidate is set for next election
+        if hasattr(self.state, "president") and self.state.president:
+            self.state.president_candidate = self.state.president
 
         return self.state.president_candidate
 
@@ -317,51 +356,44 @@ class SHXLGame:
 
     def vote_on_government(self):
         """
-
         Have all players vote on the proposed government
 
-
-
         Returns:
-
             bool: True if the vote passed, False otherwise
-
         """
-
         self.state.last_votes = []
 
         # Get votes from all living players
-
         for player in self.state.active_players:
-
             vote = player.vote()
-
             self.state.last_votes.append(vote)
 
         # Count votes
-
         ja_votes = sum(1 for vote in self.state.last_votes if vote)
-
         nein_votes = len(self.state.last_votes) - ja_votes
 
         # Vote passes if majority is in favor
-
         vote_passed = ja_votes > nein_votes
 
         if vote_passed:
+            # 🔧 FIX: Store previous government BEFORE installing new one
+            if (
+                hasattr(self.state, "president")
+                and self.state.president
+                and hasattr(self.state, "chancellor")
+                and self.state.chancellor
+            ):
+                self.state.previous_government = {
+                    "president": self.state.president.id,
+                    "chancellor": self.state.chancellor.id,
+                }
 
-            # Reset election tracker
-
-            self.state.election_tracker = 0
-
-            # Track this government for future reference
-
+            # 🔧 DON'T install government here - let ElectionPhase handle it
+            # Just track this government for future reference
             if not hasattr(self.state, "government_history"):
-
                 self.state.government_history = []
 
-            # Add this government to history
-
+            # Add this government to history (using candidates since they'll become government)
             self.state.government_history.append(
                 {
                     "president": self.state.president_candidate,
@@ -370,9 +402,11 @@ class SHXLGame:
                     "votes": self.state.last_votes,
                 }
             )
+        else:
+            # Election failed - advance election tracker
+            self.state.election_tracker += 1
 
-        # Log the election with enhanced information
-
+        # Log the election
         self.logger.log_election(
             self.state.president_candidate,
             self.state.chancellor_candidate,

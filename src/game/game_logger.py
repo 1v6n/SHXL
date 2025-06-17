@@ -266,16 +266,14 @@ class GameLogger:
 
         # President info with role (if debug level)
 
-        president_info = f"President candidate: {president.name}"
+        president_info = (
+            f"President candidate: {president.name if president else 'None'}"
+        )
 
-        if self.level.value == LogLevel.DEBUG.value:
-
+        if self.level.value == LogLevel.DEBUG.value and president:
             president_info += f" [{president.role.party_membership}"
-
             if president.is_hitler:
-
                 president_info += "/Hitler"
-
             president_info += "]"
 
         self.logger.info(president_info)
@@ -308,9 +306,18 @@ class GameLogger:
 
         self.logger.info("Individual votes:")
 
-        for player, vote in zip(president.state.active_players, votes):
-
-            self.logger.info("  Player %d: %s", player.id, "Ja" if vote else "Nein")
+        if (
+            president
+            and hasattr(president, "state")
+            and president.state
+            and hasattr(president.state, "active_players")
+        ):
+            for player, vote in zip(president.state.active_players, votes):
+                self.logger.info("  Player %d: %s", player.id, "Ja" if vote else "Nein")
+        else:
+            # Si no hay información de jugadores, mostrar votos numerados
+            for i, vote in enumerate(votes):
+                self.logger.info("  Vote %d: %s", i + 1, "Ja" if vote else "Nein")
 
         self.logger.info("Result: %s", "Passed" if result else "Failed")
 
@@ -501,16 +508,15 @@ class GameLogger:
 
         if is_president:
 
-            politic_info = f"President: {politic.name}"
+            politic_info = f"President: {politic.name if politic else 'None'}"
 
         else:
 
-            politic_info = f"Chancellor: {politic.name}"
+            politic_info = f"Chancellor: {politic.name if politic else 'None'}"
 
         # Add role info if debug level
 
-        if self.level.value == LogLevel.DEBUG.value:
-
+        if self.level.value == LogLevel.DEBUG.value and politic:
             politic_info += f" [{politic.role.party_membership}]"
 
         self.logger.info(politic_info)
@@ -683,11 +689,14 @@ class GameLogger:
 
         self.logger.info("\nFascist team:")
 
-        self.logger.info(
-            "%s - Hitler: %s",
-            hitler.name,
-            "Dead" if hitler.is_dead else "Alive",
-        )
+        if hitler:
+            self.logger.info(
+                "%s - Hitler: %s",
+                hitler.name,
+                "Dead" if hitler.is_dead else "Alive",
+            )
+        else:
+            self.logger.info("Hitler: Not found/assigned")
 
         for player in fascists:
 
@@ -713,12 +722,9 @@ class GameLogger:
 
         if game.state.winner == "liberal":
 
-            if hitler.is_dead:
-
+            if hitler and hitler.is_dead:
                 self.logger.info("Hitler was executed!")
-
             else:
-
                 self.logger.info(
                     "Liberals passed %d liberal policies!",
                     game.state.board.liberal_track_size,

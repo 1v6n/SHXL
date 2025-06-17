@@ -1,6 +1,7 @@
 # Core requirements
 setuptools
 flask
+flask-cors
 requests
 behave
 
