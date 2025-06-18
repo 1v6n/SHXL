@@ -107,6 +107,14 @@ class Radicalization(Power):
 
         target_player.role = Communist()
 
+        # Change strategy to communist if player had fascist or liberal strategy
+        from src.players.strategies.communist_strategy import CommunistStrategy
+        from src.players.strategies.fascist_strategy import FascistStrategy
+        from src.players.strategies.liberal_strategy import LiberalStrategy
+
+        if isinstance(target_player.strategy, (FascistStrategy, LiberalStrategy)):
+            target_player.strategy = CommunistStrategy(target_player)
+
         # # Update communist knowledge based on player count
         # player_count = len(self.game.state.players)
 

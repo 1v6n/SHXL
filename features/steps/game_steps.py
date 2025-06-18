@@ -185,7 +185,6 @@ def step_given_ai_strategy(context, strategy):
     "stubeo initialize_board, policy_deck_initialization, assign_players, inform_players, choose_first_president"
 )
 def step_given_stubeo_methods(context):
-    # 1) Stub initialize_board
     def fake_init_board(self, players, comm_flag):
         context.init_board_called = True
         context.game.state.board = Mock(name="BoardWithDeck")
@@ -196,14 +195,12 @@ def step_given_stubeo_methods(context):
     context.orig_init_board = SHXLGame.initialize_board
     SHXLGame.initialize_board = fake_init_board
 
-    # 2) Parcheamos PolicyFactory a clase retornando fake_pf
     context.fake_pf = Mock(spec=PolicyFactory)
     context.patcher_pf_class = patch(
         "src.game.game.PolicyFactory", return_value=context.fake_pf
     )
     context.patch_pf_class = context.patcher_pf_class.start()
 
-    # 3) Stub assign_players, inform_players, choose_first_president
     def fake_assign(self):
         context.assign_called = True
 
@@ -232,7 +229,6 @@ def step_when_configuro_juego(context):
         human_player_indices=context.humans,
         ai_strategy=context.strategy,
     )
-    # Detenemos/parcheamos de vuelta
     context.patch_pf_class.stop()
     SHXLGame.initialize_board = context.orig_init_board
     SHXLGame.assign_players = context.orig_assign
@@ -372,7 +368,6 @@ def step_given_parcheo_rolefactory_create_roles(context):
         roles.append(r)
 
     context.fake_rf = Mock(spec=RoleFactory)
-    # Aseguramos que create_roles devuelva directamente la lista `roles`
     context.fake_rf.create_roles.return_value = roles
 
     context.patcher_rf_class = patch(
@@ -383,7 +378,6 @@ def step_given_parcheo_rolefactory_create_roles(context):
 
 @given("parcheo PlayerFactory.update_player_strategies")
 def step_given_parcheo_playerfactory_update_strategies(context):
-    # Ya integrado en fake_pf
     pass
 
 
@@ -398,7 +392,6 @@ def step_when_llamo_assign_players(context):
 
 @then('PlayerFactory.create_players fue llamado una vez con (3, state, "smart", [])')
 def step_then_playerfactory_create_players_llamado(context):
-    # Verificar args y kwargs
     context.fake_pf.create_players.assert_called_once()
     args, kwargs = context.fake_pf.create_players.call_args
     assert args[0] == 3
@@ -409,7 +402,6 @@ def step_then_playerfactory_create_players_llamado(context):
 
 @then("RoleFactory.create_roles fue llamado una vez con (3, with_communists false)")
 def step_then_rolefactory_create_roles_llamado(context):
-    # Verificar llamada con keyword argument
     context.fake_rf.create_roles.assert_called_once()
     args, kwargs = context.fake_rf.create_roles.call_args
     assert args[0] == 3
@@ -507,7 +499,6 @@ def step_then_fascistas_lista_fascists(context):
         p for p in context.game.state.players if p.is_fascist and not p.is_hitler
     ]
     for fascist in fascists:
-        # Ahora cada fascista.fascists debe coincidir con la lista completa de fascistas
         assert fascist.fascists == fascists
 
 
@@ -615,13 +606,11 @@ def step_given_get_eligible_chancellors_empty(context):
 
 @given("active_players con votes {votes}")
 def step_given_active_players_votes(context, votes):
-    # Parse boolean values manually since ast.literal_eval doesn't handle "true"/"false"
     vote_str = votes.replace("true", "True").replace("false", "False")
     import ast
 
     vote_list = ast.literal_eval(vote_str)
 
-    # Create mock players with vote methods
     mock_players = []
     for i, vote in enumerate(vote_list):
         player = Mock(name=f"Player{i}")
@@ -648,7 +637,6 @@ def step_then_cada_jugador_vote_llamado(context):
 
 @then("state.last_votes debe igualar {votes}")
 def step_then_state_last_votes(context, votes):
-    # Parse boolean values manually
     vote_str = votes.replace("true", "True").replace("false", "False")
     import ast
 
@@ -673,16 +661,13 @@ def step_then_resultado_false(context):
 
 @then("state.election_tracker no debe cambiar")
 def step_then_election_tracker_no_cambia(context):
-    # This assumes election_tracker was already set in the given step
     pass
 
 
 @given('board.draw_policy(1) retorna [mock_policy con type "fascist"]')
 def step_given_board_draw_policy_fascist(context):
-    # Initialize board mock if it doesn't exist with default values
     if not hasattr(context.game.state, "board") or context.game.state.board is None:
         context.game.state.board = Mock(name="BoardMock")
-        # Set default numeric values for all tracks to avoid comparison issues
         context.game.state.board.liberal_track = 0
         context.game.state.board.liberal_track_size = 5
         context.game.state.board.fascist_track = 0
@@ -847,7 +832,6 @@ def step_then_resultado_chosen_discarded(context):
 
 @given("board.veto_available is false")
 def step_given_board_veto_available_false(context):
-    # Initialize board mock if it doesn't exist
     if not hasattr(context.game.state, "board") or context.game.state.board is None:
         context.game.state.board = Mock(name="BoardMock")
     context.game.state.board.veto_available = False
@@ -948,7 +932,6 @@ def step_given_block_next_fascist_power_false(context):
 
 @given('board.get_power_for_track_position retorna "investigation"')
 def step_given_board_get_power_investigation(context):
-    # Initialize board mock if it doesn't exist
     if not hasattr(context.game.state, "board") or context.game.state.board is None:
         context.game.state.board = Mock(name="BoardMock")
     context.game.state.board.get_power_for_track_position = Mock(
@@ -988,7 +971,6 @@ def step_given_block_next_communist_power_false(context):
 
 @given('board.get_power_for_track_position retorna "bugging"')
 def step_given_board_get_power_bugging(context):
-    # Initialize board mock if it doesn't exist
     if not hasattr(context.game.state, "board") or context.game.state.board is None:
         context.game.state.board = Mock(name="BoardMock")
     context.game.state.board.get_power_for_track_position = Mock(return_value="bugging")

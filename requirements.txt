@@ -4,6 +4,7 @@ flask
 flask-cors
 requests
 behave
+matplotlib
 
 # Type checking stubs
 types-requests
