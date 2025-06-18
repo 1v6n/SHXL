@@ -61,7 +61,6 @@ class ElectionPhase(GamePhase):
                 return GameOverPhase(self.game)
 
             self.game.state.term_limited_players = []
-            self._advance_to_next_president()
             return self
 
         vote_passed = self.game.vote_on_government()
@@ -77,9 +76,7 @@ class ElectionPhase(GamePhase):
             # Government elected, go to legislative phase
             self.game.state.president = self.game.state.president_candidate
             self.game.state.chancellor = self.game.state.chancellor_candidate
-
-            self.game.state.current_phase_name = "legislative"
-
+            self.game.state.election_tracker = 0
             return LegislativePhase(self.game)
         else:
             self.game.state.president = self.game.state.president_candidate
@@ -102,16 +99,8 @@ class ElectionPhase(GamePhase):
                 # Reset term limits
                 self.game.state.term_limited_players = []
 
-            self.game.state.chancellor_candidate = None
-            self._advance_to_next_president()
+            self.game.set_next_president()  # Stay in election phase for next round
             return self
-
-    def _advance_to_next_president(self):
-        """Advance to the next president in rotation"""
-        self.game.set_next_president()
-        # Ensure president_candidate is set for next nomination
-        if hasattr(self.game.state, "president") and self.game.state.president:
-            self.game.state.president_candidate = self.game.state.president
 
     def _check_marked_for_execution(self):
         """Check and execute players marked for execution.

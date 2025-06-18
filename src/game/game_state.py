@@ -1,3 +1,6 @@
+from random import randint
+
+
 class EnhancedGameState:
     """Enhanced game state to support all SHXL features"""
 
@@ -6,8 +9,6 @@ class EnhancedGameState:
         self.game_over = False
         self.winner = None
         self.round_number = 0
-
-        # 🔧 ADD: Phase tracking attributes
         self.current_phase_name = "setup"  # Fase actual como string simple
 
         # Players
@@ -15,13 +16,15 @@ class EnhancedGameState:
         self.active_players = []  # Non-dead players
 
         # Election-phase related
-        self.president = None
-        self.president_candidate = None
-        self.chancellor = None
-        self.chancellor_candidate = None
-        self.election_tracker = 0
-        self.last_votes = []
-        self.term_limited_players = []
+        self.president = None  # Current president
+        self.president_candidate = None  # Current candidate
+        self.chancellor = None  # Current chancellor
+        self.chancellor_candidate = None  # Current candidate
+        self.election_tracker = 0  # Number of failed elections
+        self.last_votes = []  # Votes from last election
+        self.term_limited_players = (
+            []
+        )  # Players who can't be chancellor in the current round (last elected government)
 
         # Special election
         self.special_election = False
@@ -53,14 +56,41 @@ class EnhancedGameState:
         self.board = None
 
         # Most recent policy
-        self.most_recent_policy = None
+        self.most_recent_policy = (
+            None  # Current policies being considered by chancellor/president
+        )
+        self.current_policies = []  # Month counter and Oktober Fest tracking
+        self.month_counter = randint(1, 12)  # Starts at month 1
+        self.oktoberfest_active = False  # Whether Oktober Fest is currently active
+        self.original_strategies = {}  # Store original strategies during Oktober Fest
 
-        # Current policies being considered by chancellor/president
-        self.current_policies = []
+        # Month names mapping
+        self.month_names = {
+            1: "January",
+            2: "February",
+            3: "March",
+            4: "April",
+            5: "May",
+            6: "June",
+            7: "July",
+            8: "August",
+            9: "September",
+            10: "October",
+            11: "November",
+            12: "December",
+        }
+
+    def get_current_month_name(self):
+        """Get the current month name"""
+        return self.month_names.get(self.month_counter, f"Month {self.month_counter}")
 
     def set_phase(self, phase_name):
         """Cambiar la fase actual - SIMPLE"""
         self.current_phase_name = phase_name
+
+    def get_month_name(self, month_number):
+        """Get the name of a specific month"""
+        return self.month_names.get(month_number, f"Month {month_number}")
 
     def reset_election_tracker(self):
         """Reset the election tracker to 0"""
@@ -146,7 +176,62 @@ class EnhancedGameState:
             self.president_candidate = self.active_players[next_index]
             self.president = None  # Clear current president
 
+    def advance_month_counter(self):
+        """Advance the month counter and handle Oktober Fest logic"""
+        # Increment month counter first
+        self.month_counter += 1
+
+        # Reset to 1 after month 12
+        if self.month_counter > 12:
+            self.month_counter = 1  # Handle Oktober Fest logic
+        if self.month_counter == 10:
+            # Start Oktober Fest when entering October (month 10)
+            self._start_oktoberfest()
+        elif self.month_counter == 11 and self.oktoberfest_active:
+            # End Oktober Fest when leaving October and entering November (month 11)
+            self._end_oktoberfest()
+
+    def _start_oktoberfest(self):
+        """Start Oktober Fest - save original strategies and switch bots to random"""
+        if self.oktoberfest_active:
+            return  # Already active
+
+        self.oktoberfest_active = True
+        self.original_strategies = {}
+
+        # Import RandomStrategy here to avoid circular imports
+        from src.players.strategies.random_strategy import RandomStrategy
+
+        # Save original strategies and switch all bots to random strategy
+        for player in self.active_players:
+            if hasattr(player, "is_bot") and player.is_bot:
+                # Save original strategy
+                self.original_strategies[player.id] = player.strategy
+                # Switch to random strategy
+                player.strategy = RandomStrategy(player)
+
+    def _end_oktoberfest(self):
+        """End Oktober Fest - restore original strategies"""
+        if not self.oktoberfest_active:
+            return  # Not active
+
+        self.oktoberfest_active = False
+        # Restore original strategies
+        for player in self.active_players:
+            if (
+                hasattr(player, "is_bot")
+                and player.is_bot
+                and player.id in self.original_strategies
+            ):
+                player.strategy = self.original_strategies[player.id]
+
+        # Clear saved strategies
+        self.original_strategies = {}
+
     def set_next_president(self):
-        """Set the next president based on rotation"""
+        """Set the next president based on rotation and advance month counter"""
         next_index = self.get_next_president_index()
         self.president_candidate = self.active_players[next_index]
+
+        # Advance the month counter each time we set a new president (each election)
+        self.advance_month_counter()

@@ -43,11 +43,14 @@ class SHXLGame:
 
         self.human_player_indices = []  # Initialize human player indices
 
-        self.ai_strategy = "smart"  # Default to smart strategy for AI players
+        self.ai_strategy = "role"  # Default to smart strategy for AI players
 
         self.player_count = 0  # Initialize player_count attribute
 
         self.hitler_player = None  # Initialize hitler_player attribute
+
+        self.was_oktoberfest_active = self.state.oktoberfest_active
+        self.old_month = self.state.month_counter
 
     def setup_game(
         self,
@@ -56,7 +59,7 @@ class SHXLGame:
         with_anti_policies=False,
         with_emergency_powers=False,
         human_player_indices=None,
-        ai_strategy="smart",
+        ai_strategy="role",
     ):
         """
 
@@ -128,6 +131,13 @@ class SHXLGame:
 
         from src.game.phases.setup import SetupPhase
 
+        # Check if we're starting in Oktober Fest month
+        if self.state.month_counter == 10:
+            # Manually trigger Oktober Fest since we're starting in October
+            self.state._start_oktoberfest()
+
+        # Enter the election phase
+
         self.current_phase = SetupPhase(self)
         self.state.set_phase("setup")
 
@@ -149,15 +159,14 @@ class SHXLGame:
 
         """
 
+        # Run phases until game is over
         if self.state.current_phase_name == "setup":
             from src.game.phases.election import ElectionPhase
 
             self.current_phase = ElectionPhase(self)
             self.state.set_phase("election")
-
-        # Run phases until game is over
-
         while not self.state.game_over:
+
             next_phase = self.current_phase.execute()
             self.current_phase = next_phase
 
@@ -172,7 +181,8 @@ class SHXLGame:
                 )
                 self.state.set_phase(new_phase_name)
         # End of game
-        self.state.transition_to_phase("game_over")
+        self.state.transition_to_phase("game_over")  # End of game
+
         self.logger.log_game_end(self.state.winner, self.state.players, self)
 
         # Return the winner
@@ -296,8 +306,11 @@ class SHXLGame:
 
     def choose_first_president(self):
         """Choose the first president randomly"""
-        # 🔧 FIX: Set both president AND president_candidate to the same player
+
+        # Random player becomes president candidate
+
         random_index = randint(0, len(self.state.active_players) - 1)
+
         chosen_president = self.state.active_players[random_index]
 
         # Set BOTH president and president_candidate to the same player
@@ -317,20 +330,30 @@ class SHXLGame:
     def set_next_president(self):
         """Set the next president based on rotation"""
 
+        # Check if Oktober Fest was just starting before advancing
+        self.was_oktoberfest_active = self.state.oktoberfest_active
+        self.old_month = self.state.month_counter
+
         self.state.set_next_president()
+
+        self.logger.log_month_change(self)
 
     def advance_turn(self):
         """
-        Advance the game to the next turn.
-        Increments the round number and sets the next president.
-        """
-        self.state.round_number += 1
-        self.set_next_president()
 
-        # 🔧 Ensure president_candidate is set for next election
+        Advance the game to the next turn.
+
+        Increments the round number and sets the next president.
+
+        Used primarily for testing the game flow.
+
+        """
+
+        self.state.round_number += 1
+
+        self.set_next_president()
         if hasattr(self.state, "president") and self.state.president:
             self.state.president_candidate = self.state.president
-
         return self.state.president_candidate
 
     def nominate_chancellor(self):
@@ -356,27 +379,41 @@ class SHXLGame:
 
     def vote_on_government(self):
         """
+
         Have all players vote on the proposed government
 
+
+
         Returns:
+
             bool: True if the vote passed, False otherwise
+
         """
+
         self.state.last_votes = []
 
         # Get votes from all living players
+
         for player in self.state.active_players:
+
             vote = player.vote()
+
             self.state.last_votes.append(vote)
 
         # Count votes
+
         ja_votes = sum(1 for vote in self.state.last_votes if vote)
+
         nein_votes = len(self.state.last_votes) - ja_votes
 
         # Vote passes if majority is in favor
+
         vote_passed = ja_votes > nein_votes
 
         if vote_passed:
-            # 🔧 FIX: Store previous government BEFORE installing new one
+
+            # Reset election tracker
+
             if (
                 hasattr(self.state, "president")
                 and self.state.president
@@ -388,12 +425,14 @@ class SHXLGame:
                     "chancellor": self.state.chancellor.id,
                 }
 
-            # 🔧 DON'T install government here - let ElectionPhase handle it
-            # Just track this government for future reference
+            # Track this government for future reference
+
             if not hasattr(self.state, "government_history"):
+
                 self.state.government_history = []
 
-            # Add this government to history (using candidates since they'll become government)
+            # Add this government to history
+
             self.state.government_history.append(
                 {
                     "president": self.state.president_candidate,
@@ -406,12 +445,14 @@ class SHXLGame:
             # Election failed - advance election tracker
             self.state.election_tracker += 1
 
-        # Log the election
+        # Log the election with enhanced information
+
         self.logger.log_election(
             self.state.president_candidate,
             self.state.chancellor_candidate,
             self.state.last_votes,
             vote_passed,
+            self.state.active_players,
         )
 
         return vote_passed

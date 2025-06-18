@@ -754,10 +754,10 @@ def get_executive_power_options(game_id):
             {
                 "id": p.id,
                 "name": getattr(p, "name", f"Player {p.id}"),
-                "isAlive": getattr(p, "is_alive", True),
+                "isAlive": not getattr(p, "is_dead", False),
             }
             for p in game.state.players
-            if getattr(p, "is_alive", True) and p != president
+            if not getattr(p, "is_dead", False) and p != president
         ]
 
     elif power_type == "policy_peek":

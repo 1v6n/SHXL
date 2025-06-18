@@ -165,6 +165,17 @@ class GameLogger:
                 "Communist track size: %d", game.state.board.communist_track_size
             )
 
+        # Log the starting month
+        self.logger.info(
+            "\n🗓️ The game begins in %s!", game.state.get_current_month_name()
+        )
+
+        # Check if we're starting in Oktober Fest month
+        if game.state.month_counter == 10:
+            self.logger.info(
+                "🍺 Starting in October - Oktober Fest is active from the beginning! All bots will use random strategy! 🍺"
+            )
+
     def log_player_roles(self, players, level=LogLevel.DEBUG):
         """
 
@@ -219,7 +230,15 @@ class GameLogger:
                     player.role,
                 )
 
-    def log_election(self, president, chancellor, votes, result, level=LogLevel.NORMAL):
+    def log_election(
+        self,
+        president,
+        chancellor,
+        votes,
+        result,
+        active_players=None,
+        level=LogLevel.NORMAL,
+    ):
         """
 
 
@@ -245,16 +264,15 @@ class GameLogger:
 
 
         """
-
-        if level.value > self.level.value:
-
-            return
-
         self.election_count += 1
 
         if not result:
 
             self.failed_elections += 1
+
+        if level.value > self.level.value:
+
+            return
 
         ja_votes = sum(1 for v in votes if v)
 
@@ -266,14 +284,16 @@ class GameLogger:
 
         # President info with role (if debug level)
 
-        president_info = (
-            f"President candidate: {president.name if president else 'None'}"
-        )
+        president_info = f"President candidate: {president.name}"
 
-        if self.level.value == LogLevel.DEBUG.value and president:
+        if self.level.value == LogLevel.DEBUG.value:
+
             president_info += f" [{president.role.party_membership}"
+
             if president.is_hitler:
+
                 president_info += "/Hitler"
+
             president_info += "]"
 
         self.logger.info(president_info)
@@ -306,18 +326,9 @@ class GameLogger:
 
         self.logger.info("Individual votes:")
 
-        if (
-            president
-            and hasattr(president, "state")
-            and president.state
-            and hasattr(president.state, "active_players")
-        ):
-            for player, vote in zip(president.state.active_players, votes):
+        if active_players:
+            for player, vote in zip(active_players, votes):
                 self.logger.info("  Player %d: %s", player.id, "Ja" if vote else "Nein")
-        else:
-            # Si no hay información de jugadores, mostrar votos numerados
-            for i, vote in enumerate(votes):
-                self.logger.info("  Vote %d: %s", i + 1, "Ja" if vote else "Nein")
 
         self.logger.info("Result: %s", "Passed" if result else "Failed")
 
@@ -508,15 +519,16 @@ class GameLogger:
 
         if is_president:
 
-            politic_info = f"President: {politic.name if politic else 'None'}"
+            politic_info = f"President: {politic.name}"
 
         else:
 
-            politic_info = f"Chancellor: {politic.name if politic else 'None'}"
+            politic_info = f"Chancellor: {politic.name}"
 
         # Add role info if debug level
 
-        if self.level.value == LogLevel.DEBUG.value and politic:
+        if self.level.value == LogLevel.DEBUG.value:
+
             politic_info += f" [{politic.role.party_membership}]"
 
         self.logger.info(politic_info)
@@ -697,7 +709,6 @@ class GameLogger:
             )
         else:
             self.logger.info("Hitler: Not found/assigned")
-
         for player in fascists:
 
             status = "Dead" if player.is_dead else "Alive"
@@ -723,8 +734,11 @@ class GameLogger:
         if game.state.winner == "liberal":
 
             if hitler and hitler.is_dead:
+
                 self.logger.info("Hitler was executed!")
+
             else:
+
                 self.logger.info(
                     "Liberals passed %d liberal policies!",
                     game.state.board.liberal_track_size,
@@ -950,3 +964,36 @@ class GameLogger:
         self.logger.info("\n===== POLICY DECK SHUFFLED =====\n")
 
         self.logger.info("Policies in deck: %s", policies)
+
+    def log_month_change(self, game, level=LogLevel.NORMAL):
+        """
+        Log the change of month in the game state
+        Args:
+            game_state: The current game state
+        """
+
+        if level.value > self.level.value:
+
+            return
+
+        if hasattr(self, "logger"):
+            self.logger.info("\n📅 %s begins...", game.state.get_current_month_name())
+        if (
+            game.state.month_counter == 10
+            and not game.was_oktoberfest_active
+            and game.state.oktoberfest_active
+        ):
+            self.logger.info(
+                "\n🍺 OKTOBER FEST HAS BEGUN IN %s! All bots are now using random strategy for this month! 🍺",
+                game.state.get_current_month_name().upper(),
+            )
+        elif (
+            game.old_month == 10
+            and game.state.month_counter == 11
+            and not game.state.oktoberfest_active
+        ):
+            old_month_name = game.state.get_month_name(game.old_month)
+            self.logger.info(
+                "\n🍺 OKTOBER FEST HAS ENDED! %s is over and all bots have returned to their original strategies! 🍺",
+                old_month_name,
+            )

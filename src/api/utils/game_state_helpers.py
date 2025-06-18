@@ -360,7 +360,7 @@ def _get_players_info(game, requesting_player_id=None):
             "id": getattr(player, "id", -1),
             "name": getattr(player, "name", f"Player {getattr(player, 'id', '?')}"),
             "position": getattr(player, "id", -1),
-            "isAlive": getattr(player, "is_alive", True),
+            "isAlive": not getattr(player, "is_dead", False),
             "isHuman": getattr(player, "player_type", "human") == "human",
             "isBot": getattr(player, "player_type", "human") == "ai",
             "specialStatus": [],

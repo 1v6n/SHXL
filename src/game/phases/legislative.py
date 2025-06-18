@@ -68,6 +68,25 @@ class LegislativePhase(GamePhase):
             self.game.anti_policies_in_play,
         )
 
+        self.game.state.election_tracker = 0
+
+        self.game.state.term_limited_players = []
+
+        last_president_served = self.game.state.president
+        last_chancellor_served = self.game.state.chancellor
+
+        if len(self.game.state.active_players) > 7:
+            if last_president_served:
+                self.game.state.term_limited_players.append(last_president_served)
+            if (
+                last_chancellor_served
+                and last_chancellor_served != last_president_served
+            ):
+                self.game.state.term_limited_players.append(last_chancellor_served)
+        else:
+            if last_chancellor_served:
+                self.game.state.term_limited_players.append(last_chancellor_served)
+
         if self.game.check_policy_win():
             return GameOverPhase(self.game)
 
@@ -86,54 +105,5 @@ class LegislativePhase(GamePhase):
                     self.game.logger.log("Hitler was executed! Liberals win!")
                 return GameOverPhase(self.game)
 
-        self._end_legislative_session()
-        return ElectionPhase(self.game)
-
-    def _set_term_limits(self):
-        """Set term limits based on current government"""
-        self.game.state.term_limited_players = []
-
-        last_president_served = self.game.state.president
-        last_chancellor_served = self.game.state.chancellor
-
-        if len(self.game.state.active_players) > 5:
-            # In games with more than 5 players, only chancellor is term limited
-            if last_chancellor_served:
-                self.game.state.term_limited_players.append(last_chancellor_served)
-        else:
-            # In games with 5 or fewer players, both are term limited
-            if last_chancellor_served:
-                self.game.state.term_limited_players.append(last_chancellor_served)
-            if (
-                last_president_served
-                and last_president_served != last_chancellor_served
-            ):
-                self.game.state.term_limited_players.append(last_president_served)
-
-    def _end_legislative_session(self):
-        """End the legislative session and prepare for next election"""
-
-        self._set_term_limits()
-
-        # 🔧 Store the government that just completed their term
-        if (
-            hasattr(self.game.state, "president")
-            and self.game.state.president
-            and hasattr(self.game.state, "chancellor")
-            and self.game.state.chancellor
-        ):
-            self.game.state.previous_government = {
-                "president": self.game.state.president.id,
-                "chancellor": self.game.state.chancellor.id,
-            }
-
-        # 🔧 CLEAR BOTH POSITIONS - this is the key part!
-        self.game.state.president = None
-        self.game.state.chancellor = None
-
-        # 🔧 Clear candidates
-        self.game.state.president_candidate = None
-        self.game.state.chancellor_candidate = None
-
-        # 🔧 Advance turn (round number and next president)
         self.game.advance_turn()
+        return ElectionPhase(self.game)
