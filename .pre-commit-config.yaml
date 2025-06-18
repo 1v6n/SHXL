@@ -4,7 +4,7 @@ repos:
     hooks:
     -   id: black
         language_version: python3 # Especifica tu versión de Python
-        files: ^src/.*\.py
+        files: ^(backend/src/.*\.py|.*\.py)$
 
 
 - repo: https://github.com/pre-commit/pre-commit-hooks

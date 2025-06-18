@@ -13,9 +13,10 @@ from concurrent.futures import ProcessPoolExecutor
 
 import matplotlib.pyplot as plt  # type: ignore[import-not-found]
 
-from src.game.game import SHXLGame
+# Add the backend directory to the Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+from src.game.game import SHXLGame
 
 
 def get_simulation_config():

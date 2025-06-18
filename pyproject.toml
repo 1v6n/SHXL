@@ -9,7 +9,8 @@ profile = "black"
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
+mypy_path = "backend"
 
 [[tool.mypy.overrides]]
-module = ["behave.*", "flask.*", "requests.*", "psutil.*", "flask_cors.*"]
+module = ["behave.*", "flask.*", "requests.*", "psutil.*", "flask_cors.*", "matplotlib.*"]
 ignore_missing_imports = true
