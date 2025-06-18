@@ -23,17 +23,17 @@ class AIPlayer(Player):
     basado en diferentes estrategias de juego.
     """
 
-    def __init__(self, player_id, name, role, state, strategy_type="role"):
+    def __init__(self, id, name, role, state, strategy_type="role"):
         """Inicializa un jugador IA.
 
         Args:
-            player_id (int): ID único del jugador.
+            id (int): ID único del jugador.
             name (str): Nombre del jugador.
             role: Rol asignado al jugador.
             state: Estado actual del juego.
             strategy_type (str): Tipo de estrategia a utilizar.
         """
-        super().__init__(player_id, name, role, state)
+        super().__init__(id, name, role, state)
         self.peeked_policies = None
 
         if isinstance(role, str):

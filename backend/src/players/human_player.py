@@ -74,8 +74,8 @@ class HumanPlayer(Player):
 
         if self.inspected_players:
             print("\nPlayers you have inspected:")
-            for player_id, party in self.inspected_players.items():
-                print(f"  Player {player_id} is a member of the {party} party")
+            for id, party in self.inspected_players.items():
+                print(f"  Player {id} is a member of the {party} party")
 
         print(f"{'-'*60}\n")
 

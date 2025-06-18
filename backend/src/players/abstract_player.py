@@ -15,16 +15,16 @@ class Player(ABC):
     las clases derivadas.
     """
 
-    def __init__(self, player_id, name, role, state):
+    def __init__(self, id, name, role, state):
         """Inicializa un jugador con la información básica.
 
         Args:
-            player_id (int): Identificador único del jugador.
+            id (int): Identificador único del jugador.
             name (str): Nombre del jugador.
             role: Rol asignado al jugador.
             state: Estado actual del juego.
         """
-        self.id = player_id
+        self.id = id
         self.name = name
         self.role = role
         self.state = state

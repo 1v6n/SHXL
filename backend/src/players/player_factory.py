@@ -23,13 +23,11 @@ class PlayerFactory:
     """
 
     @staticmethod
-    def create_player(
-        player_id, name, role, state, strategy_type="smart", player_type="ai"
-    ):
+    def create_player(id, name, role, state, strategy_type="smart", player_type="ai"):
         """Crea un jugador con el rol y estrategia especificados.
 
         Args:
-            player_id (int): ID del jugador.
+            id (int): ID del jugador.
             name (str): Nombre del jugador.
             role: Rol del jugador.
             state: Estado del juego.
@@ -41,11 +39,11 @@ class PlayerFactory:
         """
         if player_type in ["ai", "bot"]:
             player_type = "ai"
-            player = AIPlayer(player_id, name, role, state)
+            player = AIPlayer(id, name, role, state)
             player.strategy_type = strategy_type
         else:
             player_type = "human"
-            player = HumanPlayer(player_id, name, role, state)
+            player = HumanPlayer(id, name, role, state)
 
         player.player_type = player_type
         return player
