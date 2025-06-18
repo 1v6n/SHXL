@@ -1,5 +1,7 @@
-"""
-Executive power routes
+"""Rutas de poderes ejecutivos.
+
+Este módulo define las rutas de la API Flask para manejar la ejecución
+de poderes presidenciales durante la fase ejecutiva del juego.
 """
 
 from flask import Blueprint, jsonify, request
@@ -17,26 +19,36 @@ power_bp = Blueprint("power", __name__)
 
 @power_bp.route("/games/<game_id>/president/execute-power", methods=["POST"])
 def execute_presidential_power_endpoint(game_id):
-    """
-    Endpoint to execute a presidential power in the game.
-    This endpoint allows the current president to use their executive power during the "executive_power" phase.
-    It validates the game state, ensures the requesting player is the president, and executes the specified power.
-    If the power results in the game ending, the response includes game over information.
-    Otherwise, it ends the legislative session and transitions the game to the next phase.
+    """Endpoint para ejecutar un poder presidencial en el juego.
+
+    Este endpoint permite al presidente actual usar su poder ejecutivo durante
+    la fase "executive_power". Valida el estado del juego, asegura que el jugador
+    solicitante sea el presidente, y ejecuta el poder especificado.
+
     Args:
-        game_id (str): The unique identifier of the game.
-    Request JSON Body:
-        powerType (str): The type of presidential power to execute.
-        playerId (str): The ID of the president executing the power.
-        targetId (str, optional): The ID of the target player, if applicable.
+        game_id (str): Identificador único del juego.
+
     Returns:
-        Response: A Flask JSON response with the result of the power execution, including error messages,
-        game state updates, and phase transitions.
-        - 200: Power executed successfully.
-        - 400: Failed to execute power due to invalid input or game state.
-        - 403: Not authorized or not in the correct phase.
-        - 404: Game not found.
-        - 500: Internal server error.
+        Response: Respuesta JSON de Flask con el resultado de la ejecución del poder.
+            En caso de éxito (200):
+            - message (str): Mensaje de confirmación
+            - powerResult (dict): Resultado de la ejecución del poder
+            - president (dict): Información del presidente
+            - gameOver (bool, opcional): Si el juego terminó
+            - sessionEnd (dict, opcional): Detalles del fin de sesión
+
+            En caso de error (400/403/404/500):
+            - error (str): Descripción del error
+
+    Request JSON Body:
+        powerType (str): Tipo de poder presidencial a ejecutar.
+        playerId (str): ID del presidente ejecutando el poder.
+        targetId (str, opcional): ID del jugador objetivo, si aplica.
+
+    Note:
+        Si el poder resulta en que el juego termine, la respuesta incluye
+        información de fin de juego. De lo contrario, termina la sesión
+        legislativa y transiciona el juego a la siguiente fase.
     """
     data = request.get_json() or {}
     power_type = data.get("powerType")
@@ -52,7 +64,7 @@ def execute_presidential_power_endpoint(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Not in executive power phase",
+                    "error": "Not in executive power phase",
                     "currentPhase": current_phase,
                 }
             ),

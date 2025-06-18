@@ -1,65 +1,81 @@
-class Role(object):
-    """Base class for all role types."""
+"""Módulo de roles del juego Secret Hitler XL.
+
+Este módulo define las diferentes clases de roles que pueden ser asignados
+a los jugadores durante el juego.
+"""
+
+
+class Role:
+    """Clase base para todos los tipos de roles.
+
+    Define la estructura básica de un rol con membresía partidaria y tipo de rol.
+    """
 
     def __init__(self):
+        """Inicializa un rol con valores por defecto."""
         self.party_membership = ""
         self.role = ""
 
     def __repr__(self):
+        """Devuelve una representación en cadena del rol.
+
+        Returns:
+            str: El tipo de rol con la primera letra en mayúscula.
+        """
         return self.role.title()
 
 
 class Liberal(Role):
-    """Liberal role card.
+    """Rol de jugador liberal.
 
-    Inherits from:
-        Role: Base class for all role types.
+    Hereda de:
+        Role: Clase base para todos los tipos de roles.
     """
 
     def __init__(self):
-        """Initializes a liberal role."""
+        """Inicializa un rol liberal."""
         super(Liberal, self).__init__()
         self.party_membership = "liberal"
         self.role = "liberal"
 
 
 class Fascist(Role):
-    """Fascist role card.
+    """Rol de jugador fascista.
 
-    Inherits from:
-        Role: Base class for all role types.
+    Hereda de:
+        Role: Clase base para todos los tipos de roles.
     """
 
     def __init__(self):
-        """Initializes a fascist role."""
+        """Inicializa un rol fascista."""
         super(Fascist, self).__init__()
         self.party_membership = "fascist"
         self.role = "fascist"
 
 
 class Hitler(Role):
-    """Hitler role card.
+    """Rol de Hitler.
 
-    Inherits from:
-        Role: Base class for all role types.
+    Hereda de:
+        Role: Clase base para todos los tipos de roles.
     """
 
     def __init__(self):
-        """Initializes a Hitler role."""
+        """Inicializa un rol de Hitler."""
         super(Hitler, self).__init__()
         self.party_membership = "fascist"
         self.role = "hitler"
 
 
 class Communist(Role):
-    """Communist role card.
+    """Rol de jugador comunista.
 
-    Inherits from:
-        Role: Base class for all role types.
+    Hereda de:
+        Role: Clase base para todos los tipos de roles.
     """
 
     def __init__(self):
-        """Initializes a communist role."""
+        """Inicializa un rol comunista."""
         super(Communist, self).__init__()
         self.party_membership = "communist"
         self.role = "communist"

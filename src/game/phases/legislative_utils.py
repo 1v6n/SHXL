@@ -2,25 +2,20 @@
 
 Este módulo extrae funciones específicas de LegislativePhase para permitir
 control granular desde el API sin duplicar lógica.
-
-Funciones extraídas de: src/game/phases/legislative.py
 """
 
 
 def draw_presidential_policies(game):
-    """Dibujar 3 políticas para decisión presidencial.
-
-    Extraído de: LegislativePhase.execute() - policy drawing
+    """Dibuja 3 políticas para decisión presidencial.
 
     Args:
-        game: Instancia del juego SHXLGame
+        game (SHXLGame): Instancia del juego.
 
     Returns:
-        dict: {
-            "policies": [Policy, Policy, Policy],
-            "policy_names": [str, str, str],
-            "deck_remaining": int
-        }
+        dict: Diccionario con políticas robadas, nombres y cartas restantes.
+            - policies: Lista de 3 objetos Policy.
+            - policy_names: Lista de 3 strings con tipos de política.
+            - deck_remaining: Número entero de cartas restantes en el mazo.
     """
     policies = game.state.board.draw_policy(3)
 
@@ -32,22 +27,19 @@ def draw_presidential_policies(game):
 
 
 def handle_presidential_choice(game, policy_indices):
-    """Manejar decisión presidencial de políticas.
-
-    Extraído de: LegislativePhase.execute() - presidential choice
+    """Maneja la decisión presidencial de políticas.
 
     Args:
-        game: Instancia del juego
-        policy_indices: [int] - índices de políticas a mantener (2 de 3)
+        game: Instancia del juego.
+        policy_indices (list[int]): Índices de políticas a mantener (2 de 3).
 
     Returns:
-        dict: {
-            "chosen_policies": [Policy, Policy],
-            "discarded_policy": Policy,
-            "chosen_names": [str, str],
-            "discarded_name": str,
-            "success": bool
-        }
+        dict: Resultado de la decisión presidencial.
+            - chosen_policies: Lista de 2 políticas elegidas.
+            - discarded_policy: Política descartada.
+            - chosen_names: Lista de strings con nombres de políticas elegidas.
+            - discarded_name: String con nombre de política descartada.
+            - success: Boolean indicando si la operación fue exitosa.
     """
     if not hasattr(game.state, "presidential_policies"):
         return {"success": False, "error": "No presidential policies available"}
@@ -78,19 +70,16 @@ def handle_presidential_choice(game, policy_indices):
 
 
 def check_veto_proposal(game):
-    """Verificar si el canciller puede/quiere proponer veto.
-
-    Extraído de: LegislativePhase.execute() - veto proposal
+    """Verifica si el canciller puede/quiere proponer veto.
 
     Args:
-        game: Instancia del juego
+        game: Instancia del juego.
 
     Returns:
-        dict: {
-            "veto_available": bool,
-            "chancellor_proposes": bool,
-            "can_veto": bool
-        }
+        dict: Estado del veto disponible.
+            - veto_available: Boolean indicando si el veto está disponible.
+            - chancellor_proposes: Boolean o None indicando si el canciller propone veto.
+            - can_veto: Boolean indicando si se puede usar el veto.
     """
     veto_available = game.state.board.veto_available
 
@@ -114,21 +103,18 @@ def check_veto_proposal(game):
 
 
 def handle_veto_decision(game, president_accepts_veto):
-    """Manejar decisión presidencial sobre veto.
-
-    Extraído de: LegislativePhase.execute() - veto resolution
+    """Maneja la decisión presidencial sobre veto.
 
     Args:
-        game: Instancia del juego
-        president_accepts_veto: bool - si el presidente acepta el veto
+        game: Instancia del juego.
+        president_accepts_veto (bool): Si el presidente acepta el veto.
 
     Returns:
-        dict: {
-            "veto_accepted": bool,
-            "policies_discarded": bool,
-            "election_tracker_advanced": bool,
-            "next_phase": str
-        }
+        dict: Resultado de la decisión de veto.
+            - veto_accepted: Boolean indicando si el veto fue aceptado.
+            - policies_discarded: Boolean indicando si las políticas fueron descartadas.
+            - election_tracker_advanced: Boolean indicando si avanzó el contador electoral.
+            - next_phase: String con el nombre de la siguiente fase.
     """
     if president_accepts_veto:
         if hasattr(game.state, "chancellor_policies"):
@@ -153,25 +139,22 @@ def handle_veto_decision(game, president_accepts_veto):
 
 
 def handle_chancellor_choice(game, policy_index):
-    """Manejar decisión del canciller sobre qué política promulgar.
-
-    Extraído de: LegislativePhase.execute() - chancellor choice
+    """Maneja la decisión del canciller sobre qué política promulgar.
 
     Args:
-        game: Instancia del juego
-        policy_index: int - índice de la política a promulgar (0 o 1)
+        game: Instancia del juego.
+        policy_index (int): Índice de la política a promulgar (0 o 1).
 
     Returns:
-        dict: {
-            "enacted_policy": Policy,
-            "discarded_policy": Policy,
-            "enacted_name": str,
-            "discarded_name": str,
-            "power_granted": str or None,
-            "game_over": bool,
-            "winner": str or None,
-            "success": bool
-        }
+        dict: Resultado de la decisión del canciller.
+            - enacted_policy: Política promulgada.
+            - discarded_policy: Política descartada.
+            - enacted_name: String con nombre de política promulgada.
+            - discarded_name: String con nombre de política descartada.
+            - power_granted: String con tipo de poder otorgado o None.
+            - game_over: Boolean indicando si el juego terminó.
+            - winner: String con ganador o None.
+            - success: Boolean indicando si la operación fue exitosa.
     """
     if (
         not hasattr(game.state, "chancellor_policies")
@@ -222,16 +205,23 @@ def handle_chancellor_choice(game, policy_index):
 def execute_presidential_power(
     game, power_type, target_player_id=None, peek_choice=None
 ):
-    """Ejecutar poder presidencial con lógica separada para humanos y bots.
+    """Ejecuta poder presidencial con lógica separada para humanos y bots.
 
     Args:
-        game: Instancia del juego
-        power_type: str - tipo de poder a ejecutar
-        target_player_id: int - ID del jugador objetivo (SOLO para humanos)
-        peek_choice: any - decisión para peek de políticas
+        game: Instancia del juego.
+        power_type (str): Tipo de poder a ejecutar.
+        target_player_id (int, optional): ID del jugador objetivo (solo para humanos).
+        peek_choice: Decisión para inspección de políticas (no utilizado actualmente).
 
     Returns:
-        dict: Resultado de la ejecución del poder
+        dict: Resultado de la ejecución del poder.
+            - success: Boolean indicando si la operación fue exitosa.
+            - power_executed: String con tipo de poder ejecutado.
+            - target_player: Diccionario con información del jugador objetivo.
+            - result: Diccionario con resultado específico del poder.
+            - game_over: Boolean indicando si el juego terminó.
+            - winner: String con ganador o None.
+            - hitler_executed: Boolean indicando si Hitler fue ejecutado.
     """
     try:
         president = game.state.president
@@ -257,7 +247,15 @@ def execute_presidential_power(
 
 
 def _execute_power_for_bot(game, power_type):
-    """Ejecutar poder para presidente BOT usando lógica automática del juego."""
+    """Ejecuta poder para presidente BOT usando lógica automática del juego.
+
+    Args:
+        game: Instancia del juego.
+        power_type (str): Tipo de poder a ejecutar.
+
+    Returns:
+        dict: Resultado de la ejecución del poder para bot.
+    """
     try:
         result = game.execute_power(power_type)
 
@@ -400,7 +398,16 @@ def _execute_power_for_bot(game, power_type):
 
 
 def _execute_power_for_human(game, power_type, target_player_id):
-    """Ejecutar poder para presidente HUMANO usando target_player_id."""
+    """Ejecuta poder para presidente HUMANO usando target_player_id.
+
+    Args:
+        game: Instancia del juego.
+        power_type (str): Tipo de poder a ejecutar.
+        target_player_id (int): ID del jugador objetivo.
+
+    Returns:
+        dict: Resultado de la ejecución del poder para humano.
+    """
 
     if power_type == "execution":
         if target_player_id is None:
@@ -611,7 +618,19 @@ def _execute_power_for_human(game, power_type, target_player_id):
 
 
 def end_legislative_session(game):
-    """Finalizar sesión legislativa y preparar siguiente elección."""
+    """Finaliza la sesión legislativa y prepara la siguiente elección.
+
+    Args:
+        game: Instancia del juego.
+
+    Returns:
+        dict: Resultado del final de sesión.
+            - term_limits_set: Boolean indicando si se establecieron límites de mandato.
+            - previous_government: Diccionario con información del gobierno anterior.
+            - turn_advanced: Boolean indicando si avanzó el turno.
+            - next_phase: String con nombre de la siguiente fase.
+            - debug: Diccionario con información de depuración.
+    """
 
     set_term_limits(game)
 
@@ -674,9 +693,6 @@ def end_legislative_session(game):
         print("ERROR: Could not determine next president!")
 
     final_president_id = game.state.president.id if game.state.president else None
-    final_candidate_id = (
-        game.state.president_candidate.id if game.state.president_candidate else None
-    )
 
     if final_president_id == current_president_id:
         print(f"ERROR: President did NOT change! Still {current_president_id}")
@@ -703,12 +719,10 @@ def end_legislative_session(game):
 
 
 def set_term_limits(game):
-    """Establecer límites de mandato basados en gobierno actual.
-
-    Extraído de: LegislativePhase._set_term_limits()
+    """Establece límites de mandato basados en el gobierno actual.
 
     Args:
-        game: Instancia del juego
+        game: Instancia del juego.
     """
     game.state.term_limited_players = []
 
@@ -726,12 +740,21 @@ def set_term_limits(game):
 
 
 def run_full_legislative_cycle(game):
-    """Ejecutar ciclo legislativo completo automáticamente.
+    """Ejecuta el ciclo legislativo completo automáticamente.
 
-    Equivalente a LegislativePhase.execute() completo
+    Equivalente a LegislativePhase.execute() completo pero con control granular.
+
+    Args:
+        game: Instancia del juego.
 
     Returns:
-        dict: Resultado completo de la fase legislativa (SOLO DICCIONARIOS SERIALIZABLES)
+        dict: Resultado completo de la fase legislativa (solo diccionarios serializables).
+            - phase: String con nombre de la fase actual.
+            - requires_human_input: Boolean indicando si requiere entrada humana.
+            - next_step: String con el siguiente paso requerido.
+            - game_over: Boolean indicando si el juego terminó.
+            - winner: String con ganador si el juego terminó.
+            - next_phase: String con nombre de la siguiente fase.
     """
     presidential_draw = draw_presidential_policies(game)
     game.state.presidential_policies = presidential_draw["policies"]

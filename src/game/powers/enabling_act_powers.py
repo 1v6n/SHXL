@@ -2,21 +2,37 @@ from src.game.powers.abstract_power import Power, PowerOwner
 
 
 class EnablingActPower(Power):
-    """Base class for Enabling Act powers (Chancellor's emergency powers)"""
+    """Clase base para los poderes del Acta Habilitante (poderes de emergencia del Canciller).
+
+    Esta clase define la estructura común para todos los poderes especiales que puede
+    ejercer el Canciller cuando se activa el Acta Habilitante en el juego.
+    """
 
     @staticmethod
     def get_owner():
-        """Get the owner of this power"""
+        """Obtiene el propietario de este poder.
+
+        Returns:
+            PowerOwner: El propietario del poder (CHANCELLOR).
+        """
         return PowerOwner.CHANCELLOR
 
 
 class ChancellorPropaganda(EnablingActPower):
-    def execute(self):
-        """
-        Chancellor can view the top card and optionally discard it
+    """Poder de propaganda del Canciller.
+
+    Permite al Canciller ver la carta superior del mazo y opcionalmente descartarla
+    para influir en las políticas que se van a promulgar.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de propaganda del Canciller.
+
+        El Canciller puede ver la carta superior del mazo de políticas y decidir
+        si la descarta o la mantiene en el mazo.
 
         Returns:
-            policy: The viewed policy
+            Policy or None: La política vista, o None si no hay políticas disponibles.
         """
         if not self.game.state.board.policies:
             return None
@@ -32,36 +48,50 @@ class ChancellorPropaganda(EnablingActPower):
 
 
 class ChancellorPolicyPeek(EnablingActPower):
-    def execute(self):
-        """
-        Chancellor views the top 3 policies in the draw pile
+    """Poder de inspección de políticas del Canciller.
+
+    Permite al Canciller ver las tres cartas superiores del mazo de políticas
+    sin extraerlas, proporcionando información estratégica sobre las próximas políticas.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de inspección de políticas.
+
+        Permite al Canciller examinar las tres cartas superiores del mazo
+        de políticas para obtener información estratégica.
 
         Returns:
-            list: The top 3 policies
+            list: Lista con las tres políticas superiores del mazo.
         """
-        # Get the top 3 policies without drawing them
         top_policies = self.game.state.board.policies[:3]
-
         return top_policies
 
 
 class ChancellorImpeachment(EnablingActPower):
-    def execute(self, revealer_player=None):
-        """
-        Chancellor reveals their party to someone chosen by the president
+    """Poder de acusación del Canciller.
+
+    Permite al Canciller revelar su afiliación partidaria a un jugador
+    elegido por el Presidente, creando dinámicas de confianza y desconfianza.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de acusación del Canciller.
+
+        El Canciller revela su afiliación partidaria a un jugador específico
+        que es elegido por el Presidente.
 
         Args:
-            revealer_player: Player who gets to see the party (chosen by president)
+            revealer_player (Player, optional): Jugador que podrá ver la afiliación
+                del Canciller. Si no se proporciona, el Presidente debe elegir uno.
+                Puede pasarse a través de kwargs.
 
         Returns:
-            bool: True if successful
+            bool: True si la operación fue exitosa, False en caso contrario.
         """
-        # Chancellor is the one revealing their party
+        revealer_player = kwargs.get("revealer_player", None)
         target_player = self.game.state.chancellor
 
-        # If revealer_player is not provided, president must choose
         if revealer_player is None:
-            # Get eligible players (not president or chancellor)
             eligible_players = [
                 p
                 for p in self.game.state.active_players
@@ -70,7 +100,6 @@ class ChancellorImpeachment(EnablingActPower):
             if not eligible_players:
                 return False
 
-            # President chooses who gets to see the chancellor's party
             revealer_player = self.game.state.president.choose_revealer(
                 eligible_players
             )
@@ -86,23 +115,32 @@ class ChancellorImpeachment(EnablingActPower):
 
 
 class ChancellorMarkedForExecution(EnablingActPower):
-    def execute(self, target_player):
-        """
-        Chancellor marks a player for execution after 3 fascist policies
+    """Poder de marcado para ejecución del Canciller.
+
+    Permite al Canciller marcar a un jugador para ser ejecutado después
+    de que se promulguen 3 políticas fascistas adicionales.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de marcado para ejecución.
+
+        Marca a un jugador específico para ser ejecutado automáticamente
+        después de que se promulguen 3 políticas fascistas más.
 
         Args:
-            target_player: The player to mark
+            target_player (Player): El jugador que será marcado para ejecución.
+                Puede pasarse como primer argumento en args o como kwarg.
 
         Returns:
-            player: The marked player
+            Player: El jugador marcado para ejecución.
         """
-        # Store the player and how the fascist tracker was when they were marked
+        target_player = args[0] if args else kwargs.get("target_player")
+
         self.game.state.marked_for_execution = target_player
         self.game.state.marked_for_execution_tracker = (
             self.game.state.board.fascist_track
         )
 
-        # Log that the player was marked for future execution
         self.game.logger.log(
             f"Player {target_player.id} ({target_player.name}) has been marked for execution by Chancellor {self.game.state.chancellor.name}."
         )
@@ -114,20 +152,29 @@ class ChancellorMarkedForExecution(EnablingActPower):
 
 
 class ChancellorExecution(EnablingActPower):
-    def execute(self, target_player):
-        """
-        Chancellor executes a player
+    """Poder de ejecución del Canciller.
+
+    Permite al Canciller ejecutar inmediatamente a un jugador,
+    eliminándolo permanentemente del juego.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de ejecución inmediata.
+
+        Ejecuta a un jugador específico, marcándolo como muerto y
+        eliminándolo de la lista de jugadores activos.
 
         Args:
-            target_player: The player to execute
+            target_player (Player): El jugador que será ejecutado.
+                Puede pasarse como primer argumento en args o como kwarg.
 
         Returns:
-            player: The executed player
+            Player: El jugador ejecutado.
         """
-        # Mark the player as dead
+        target_player = args[0] if args else kwargs.get("target_player")
+
         target_player.is_dead = True
 
-        # Remove from active players
         if target_player in self.game.state.active_players:
             self.game.state.active_players.remove(target_player)
 
@@ -135,12 +182,21 @@ class ChancellorExecution(EnablingActPower):
 
 
 class VoteOfNoConfidence(EnablingActPower):
-    def execute(self):
-        """
-        Chancellor enacts the discarded policy (specific to Enabling Act)
+    """Poder de voto de no confianza del Canciller.
+
+    Permite al Canciller promulgar la última política descartada,
+    proporcionando una segunda oportunidad para políticas previamente rechazadas.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de voto de no confianza.
+
+        Promulga la última política que fue descartada, dándole
+        una segunda oportunidad de ser implementada.
 
         Returns:
-            policy: The enacted policy or None
+            Policy or None: La política promulgada, o None si no hay
+                políticas descartadas disponibles.
         """
         if not self.game.state.last_discarded:
             return None

@@ -1,17 +1,40 @@
+"""Jugador humano para Secret Hitler XL.
+
+Este módulo define la clase HumanPlayer que representa un jugador controlado
+por un humano a través de la consola, con interfaces interactivas para
+todas las decisiones del juego.
+"""
+
 from src.players.abstract_player import Player
 
 
 class HumanPlayer(Player):
-    """Human player that interacts through the console"""
+    """Jugador controlado por humano que interactúa a través de la consola.
+
+    Extiende la clase Player para proporcionar interfaces interactivas
+    que permiten a los usuarios humanos tomar decisiones durante el juego.
+    """
 
     def _display_players(self, players):
-        """Display a list of players with their IDs"""
+        """Muestra una lista de jugadores con sus IDs.
+
+        Args:
+            players (list): Lista de jugadores a mostrar.
+        """
         print("\nAvailable players:")
         for player in players:
             print(f"  {player.name} - ID {player.id}")
 
     def _get_player_choice(self, players, action_name):
-        """Get player choice from the console"""
+        """Obtiene la elección del jugador desde la consola.
+
+        Args:
+            players (list): Lista de jugadores disponibles.
+            action_name (str): Nombre de la acción a realizar.
+
+        Returns:
+            Player: El jugador seleccionado.
+        """
         while True:
             try:
                 self._display_players(players)
@@ -24,12 +47,11 @@ class HumanPlayer(Player):
                 print("Please enter a valid number.")
 
     def _display_role_info(self):
-        """Display role information to the player"""
+        """Muestra información del rol al jugador."""
         print(f"\n{'-'*60}")
         print(f"You are {self.name}")
         print(f"Your role: {self.role}")
 
-        # Show information about other players if available
         if self.is_fascist and not self.is_hitler:
             print("\nYou know the following information:")
             print(f"  Hitler is {self.hitler.name}")
@@ -39,7 +61,6 @@ class HumanPlayer(Player):
                 )
 
         if self.is_hitler and self.fascists:
-            # Only in games with < 8 players
             print("\nYou know the following information:")
             print(
                 f"  Your fellow fascists are: {', '.join([f'Player {p.id}: {p.name}' for p in self.fascists])}"
@@ -51,20 +72,21 @@ class HumanPlayer(Player):
                 f"  Your fellow communists are: {', '.join([f'Player {p}' for p in self.known_communists])}"
             )
 
-        # Show inspected players
         if self.inspected_players:
             print("\nPlayers you have inspected:")
-            for id, party in self.inspected_players.items():
-                print(f"  Player {id} is a member of the {party} party")
+            for player_id, party in self.inspected_players.items():
+                print(f"  Player {player_id} is a member of the {party} party")
 
         print(f"{'-'*60}\n")
 
     def nominate_chancellor(self, eligible_players=None):
-        """
-        Choose a chancellor interactively
+        """Elige un canciller de forma interactiva.
+
+        Args:
+            eligible_players (list, optional): Jugadores elegibles como canciller.
 
         Returns:
-            player: The nominated chancellor
+            Player: El canciller nominado.
         """
         print("\n=== CHANCELLOR NOMINATION ===")
         self._display_role_info()
@@ -76,14 +98,13 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "nominate as Chancellor")
 
     def filter_policies(self, policies):
-        """
-        Choose which policies to pass as president
+        """Elige qué políticas pasar como presidente.
 
         Args:
-            policies: List of 3 policies
+            policies (list): Lista de 3 políticas.
 
         Returns:
-            tuple: (chosen [2], discarded [1])
+            tuple: (políticas elegidas [2], política descartada [1]).
         """
         print("\n=== PRESIDENTIAL POLICY SELECTION ===")
         self._display_role_info()
@@ -109,14 +130,13 @@ class HumanPlayer(Player):
                 print("Please enter a valid number.")
 
     def choose_policy(self, policies):
-        """
-        Choose which policy to enact as chancellor
+        """Elige qué política promulgar como canciller.
 
         Args:
-            policies: List of 2 policies
+            policies (list): Lista de 2 políticas.
 
         Returns:
-            tuple: (chosen [1], discarded [1])
+            tuple: (política elegida [1], política descartada [1]).
         """
         print("\n=== CHANCELLOR POLICY SELECTION ===")
         self._display_role_info()
@@ -141,11 +161,10 @@ class HumanPlayer(Player):
                 print("Please enter a valid number.")
 
     def vote(self):
-        """
-        Vote on a government
+        """Vota sobre un gobierno.
 
         Returns:
-            bool: True for Ja, False for Nein
+            bool: True para Ja, False para Nein.
         """
         print("\n=== GOVERNMENT VOTE ===")
         self._display_role_info()
@@ -163,11 +182,10 @@ class HumanPlayer(Player):
             print("Invalid vote. Please enter 'ja' or 'nein'.")
 
     def veto(self):
-        """
-        Decide whether to veto (as chancellor)
+        """Decide si vetar como canciller.
 
         Returns:
-            bool: True to veto, False otherwise
+            bool: True para vetar, False en caso contrario.
         """
         if not self.state.board.veto_available:
             return False
@@ -191,11 +209,10 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def accept_veto(self):
-        """
-        Decide whether to accept veto (as president)
+        """Decide si aceptar el veto como presidente.
 
         Returns:
-            bool: True to accept veto, False otherwise
+            bool: True para aceptar el veto, False en caso contrario.
         """
         print("\n=== VETO CONFIRMATION ===")
         self._display_role_info()
@@ -214,11 +231,10 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def view_policies(self, policies):
-        """
-        React to seeing policies with Policy Peek
+        """Reacciona a ver políticas con espionaje de políticas.
 
         Args:
-            policies: List of policies
+            policies (list): Lista de políticas vistas.
         """
         print("\n=== POLICY PEEK ===")
         self._display_role_info()
@@ -228,11 +244,10 @@ class HumanPlayer(Player):
         input("Press Enter to continue...")
 
     def kill(self):
-        """
-        Choose a player to execute immediately
+        """Elige un jugador para ejecutar inmediatamente.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para ejecutar.
         """
         print("\n=== IMMEDIATE EXECUTION ===")
         self._display_role_info()
@@ -242,10 +257,10 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "execute")
 
     def choose_player_to_mark(self):
-        """
-        Choose a player to mark for execution
+        """Elige un jugador para marcar para ejecución.
+
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para marcar.
         """
         print("\n=== MARK FOR EXECUTION ===")
         self._display_role_info()
@@ -255,11 +270,10 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "mark for execution")
 
     def inspect_player(self):
-        """
-        Choose a player to inspect
+        """Elige un jugador para inspeccionar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para inspeccionar.
         """
         print("\n=== LOYALTY INSPECTION ===")
         self._display_role_info()
@@ -272,7 +286,6 @@ class HumanPlayer(Player):
             if p != self and p.id not in self.inspected_players
         ]
 
-        # If all players have been inspected, can inspect any player
         eligible_players = (
             uninspected
             if uninspected
@@ -282,11 +295,10 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "inspect")
 
     def choose_next(self):
-        """
-        Choose the next president (special election)
+        """Elige el próximo presidente en elección especial.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido como próximo presidente.
         """
         print("\n=== SPECIAL ELECTION ===")
         self._display_role_info()
@@ -296,29 +308,26 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "nominate as next President")
 
     def choose_player_to_radicalize(self):
-        """
-        Choose a player to convert to communist
+        """Elige un jugador para convertir al comunismo.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para radicalizar.
         """
         print("\n=== RADICALIZATION ===")
         self._display_role_info()
 
         print("As President, you must choose a player to convert to Communist.")
-        # Cannot radicalize Hitler or self
         eligible_players = [p for p in self.state.active_players if p != self]
         return self._get_player_choice(eligible_players, "radicalize")
 
     def propaganda_decision(self, policy):
-        """
-        Decide whether to discard the top policy
+        """Decide si descartar la política superior.
 
         Args:
-            policy: The top policy
+            policy: La política superior del mazo.
 
         Returns:
-            bool: True to discard, False to keep
+            bool: True para descartar, False para mantener.
         """
         print("\n=== PROPAGANDA ===")
         self._display_role_info()
@@ -336,11 +345,13 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def choose_revealer(self, eligible_players):
-        """
-        Choose a player to reveal party membership to (Impeachment)
+        """Elige un jugador para revelar afiliación política (Impeachment).
+
+        Args:
+            eligible_players (list): Jugadores elegibles.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para revelar afiliación.
         """
         print("\n=== IMPEACHMENT ===")
         self._display_role_info()
@@ -351,11 +362,13 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "reveal party membership to")
 
     def social_democratic_removal_choice(self, state):
-        """
-        Choose which policy track to remove from (Social Democratic)
+        """Elige qué pista de políticas eliminar (Socialdemócrata).
+
+        Args:
+            state: Estado actual del juego.
 
         Returns:
-            str: "fascist" or "communist"
+            str: "fascist" o "communist".
         """
         print("\n=== SOCIAL DEMOCRATIC ===")
         self._display_role_info()
@@ -371,11 +384,10 @@ class HumanPlayer(Player):
             print("Invalid track. Please enter 'fascist' or 'communist'.")
 
     def mark_for_execution(self):
-        """
-        Choose a player to mark for execution
+        """Elige un jugador para marcar para ejecución.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para marcar.
         """
         print("\n=== MARK FOR EXECUTION ===")
         self._display_role_info()
@@ -385,11 +397,10 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "mark for execution")
 
     def choose_player_to_bug(self):
-        """
-        Choose a player to bug (view party membership)
+        """Elige un jugador para espiar su afiliación política.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para espiar.
         """
         print("\n=== BUGGING ===")
         self._display_role_info()
@@ -399,11 +410,10 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "bug")
 
     def pardon_player(self):
-        """
-        Choose to pardon the player marked for execution
+        """Elige perdonar al jugador marcado para ejecución.
 
         Returns:
-            bool: True to pardon, False otherwise
+            bool: True para perdonar, False en caso contrario.
         """
         print("\n=== PRESIDENTIAL PARDON ===")
         self._display_role_info()
@@ -424,16 +434,14 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def chancellor_veto_proposal(self, policies):
-        """
-        As Chancellor, decide whether to propose a veto when veto power is available
+        """Como canciller, decide si proponer un veto cuando está disponible.
 
         Args:
-            policies: List of 2 policies
+            policies (list): Lista de 2 políticas.
 
         Returns:
-            bool: True to propose veto, False to enact a policy
+            bool: True para proponer veto, False para promulgar política.
         """
-        # If veto is not available, don't offer the option
         if not self.state.veto_available:
             return False
 
@@ -456,11 +464,10 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def vote_of_no_confidence(self):
-        """
-        As Chancellor with Enabling Act power, decide whether to enact the discarded policy
+        """Como canciller con poder de Ley Habilitante, decide si promulgar la política descartada.
 
         Returns:
-            bool: True to enact the discarded policy, False to leave it
+            bool: True para promulgar política descartada, False para dejarla.
         """
         print("\n=== VOTE OF NO CONFIDENCE ===")
         self._display_role_info()
@@ -484,16 +491,14 @@ class HumanPlayer(Player):
             return False
 
     def chancellor_propose_veto(self, policies):
-        """
-        Chancellor proposes a veto when veto power is available
+        """El canciller propone un veto cuando está disponible.
 
         Args:
-            policies: List of 2 policies the Chancellor received
+            policies (list): Lista de 2 políticas que recibió el canciller.
 
         Returns:
-            bool: True to propose a veto, False otherwise
+            bool: True para proponer veto, False en caso contrario.
         """
-        # Only offer veto if it's available
         if not self.state.veto_available:
             return False
 
@@ -514,11 +519,10 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def choose_player_to_mark_for_execution(self):
-        """
-        Choose a player to mark for future execution
+        """Elige un jugador para marcar para ejecución futura.
 
         Returns:
-            player: The player to mark
+            Player: El jugador a marcar.
         """
         print("\n=== MARK FOR EXECUTION ===")
         self._display_role_info()
@@ -530,12 +534,7 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "mark for execution")
 
     def choose_to_pardon(self):
-        """
-        Choose whether to pardon the player marked for execution
-
-        Returns:
-            bool: True to pardon, False otherwise
-        """
+        """Elige si perdonar al jugador marcado para ejecución.            bool: True para perdonar, False en caso contrario."""
         print("\n=== PARDON ===")
         self._display_role_info()
 
@@ -560,11 +559,10 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def no_confidence_decision(self):
-        """
-        Decide whether to enact the discarded policy (Vote of No Confidence)
+        """Decide si promulgar la política descartada (Voto de No Confianza).
 
         Returns:
-            bool: True to enact, False otherwise
+            bool: True para promulgar, False en caso contrario.
         """
         print("\n=== VOTE OF NO CONFIDENCE ===")
         self._display_role_info()
@@ -588,14 +586,13 @@ class HumanPlayer(Player):
             print("Invalid choice. Please enter 'yes' or 'no'.")
 
     def choose_player_to_investigate(self, eligible_players):
-        """
-        Choose a player to investigate their party membership
+        """Elige un jugador para investigar su afiliación política.
 
         Args:
-            eligible_players: List of players that can be investigated
+            eligible_players (list): Jugadores que pueden ser investigados.
 
         Returns:
-            player: The player to investigate
+            Player: El jugador a investigar.
         """
         print("\n=== INVESTIGATE LOYALTY ===")
         self._display_role_info()
@@ -604,14 +601,13 @@ class HumanPlayer(Player):
         return self._get_player_choice(eligible_players, "investigate")
 
     def choose_next_president(self, eligible_players):
-        """
-        Choose the next president for a special election
+        """Elige el próximo presidente para elección especial.
 
         Args:
-            eligible_players: List of players that can be chosen as next president
+            eligible_players (list): Jugadores que pueden ser elegidos como próximo presidente.
 
         Returns:
-            player: The player to be the next president
+            Player: El jugador que será el próximo presidente.
         """
         print("\n=== SPECIAL ELECTION ===")
         self._display_role_info()

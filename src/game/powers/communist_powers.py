@@ -1,15 +1,21 @@
 from src.game.powers.abstract_power import Power
 
-# Communist Powers
-
 
 class Confession(Power):
-    def execute(self):
-        """
-        President reveals their party membership
+    """Poder de confesión comunista.
+
+    Permite al Presidente revelar su afiliación partidaria a todos los jugadores,
+    creando transparencia sobre su identidad política.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de confesión del Presidente.
+
+        El Presidente revela públicamente su afiliación partidaria,
+        haciendo que esta información esté disponible para todos los jugadores.
 
         Returns:
-            str: The president's party membership
+            str: La afiliación partidaria del Presidente.
         """
         president = self.game.state.president
         self.game.state.revealed_affiliations[president.id] = (
@@ -20,17 +26,28 @@ class Confession(Power):
 
 
 class Bugging(Power):
-    def execute(self, target_player):
-        """
-        Communists view another player's party membership
+    """Poder de espionaje comunista.
+
+    Permite a los comunistas investigar secretamente la afiliación partidaria
+    de otro jugador, compartiendo esta información solo entre comunistas.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de espionaje.
+
+        Los comunistas obtienen información sobre la afiliación partidaria
+        de un jugador objetivo, manteniendo esta información en secreto
+        entre los miembros del partido comunista.
 
         Args:
-            target_player: The player to investigate
+            target_player (Player): El jugador que será investigado.
+                Puede pasarse como primer argumento en args o como kwarg.
 
         Returns:
-            str: The party membership of the target player
+            Player: El jugador investigado.
         """
-        # Only communists will see this information
+        target_player = args[0] if args else kwargs.get("target_player")
+
         for player in self.game.state.players:
             if player.role.party_membership == "communist":
                 if not hasattr(player, "known_affiliations"):
@@ -43,21 +60,28 @@ class Bugging(Power):
 
 
 class FiveYearPlan(Power):
-    def execute(self):
-        """
-        Add 2 communist and 1 liberal policy to the deck
+    """Poder del Plan Quinquenal comunista.
+
+    Permite manipular el mazo de políticas agregando nuevas cartas comunistas
+    y liberales, alterando la distribución de políticas disponibles.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder del Plan Quinquenal.
+
+        Agrega 2 políticas comunistas y 1 política liberal al mazo de cartas,
+        mezclándolas con las políticas existentes para cambiar las probabilidades
+        de promulgar diferentes tipos de políticas.
 
         Returns:
-            bool: True if successful
+            bool: True si la operación fue exitosa.
         """
         from random import shuffle
 
         from src.policies.policy import Communist, Liberal
 
-        # Create the policies
         new_policies = [Communist(), Communist(), Liberal()]
 
-        # Add them to the draw pile
         self.game.state.board.policies = new_policies + self.game.state.board.policies
         shuffle(self.game.state.board.policies)
 
@@ -65,21 +89,27 @@ class FiveYearPlan(Power):
 
 
 class Congress(Power):
-    def execute(self):
-        """
-        Communists learn who the communists are right now (can be used to check if radicalization failed on Hitler)
+    """Poder del Congreso comunista.
+
+    Permite a los comunistas identificar a todos los miembros actuales del partido,
+    útil para verificar si la radicalización de Hitler falló o para reorganizar estrategias.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder del Congreso.
+
+        Revela a todos los comunistas quiénes son los miembros actuales del partido
+        comunista, permitiendo verificar conversiones exitosas o fallidas.
 
         Returns:
-            dict: Dictionary of player IDs mapped to whether they are communist
+            list: Lista de IDs de jugadores que son comunistas actualmente.
         """
-        # Get all actual communists
         actual_communists = [
             player.id
             for player in self.game.state.players
             if player.role.party_membership == "communist"
         ]
 
-        # Share this information with all communists
         for player in self.game.state.players:
             if player.role.party_membership == "communist":
                 player.known_communists = actual_communists
@@ -88,26 +118,35 @@ class Congress(Power):
 
 
 class Radicalization(Power):
-    def execute(self, target_player):
-        """
-        Convert a player to communist
+    """Poder de radicalización comunista.
+
+    Permite convertir a un jugador al comunismo, cambiando su afiliación
+    partidaria y estrategia política, excepto en casos especiales como Hitler.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de radicalización.
+
+        Convierte a un jugador objetivo al comunismo, cambiando su rol
+        y estrategia política. Hitler y algunos otros roles especiales
+        no pueden ser convertidos.
 
         Args:
-            target_player: The player to convert
+            target_player (Player): El jugador que será convertido al comunismo.
+                Puede pasarse como primer argumento en args o como kwarg.
 
         Returns:
-            player: The converted player or None if conversion failed
+            Player or None: El jugador convertido, o None si la conversión falló.
         """
-        # Cannot convert Hitler or Capitalist
+        target_player = args[0] if args else kwargs.get("target_player")
+
         if target_player.is_hitler:
             return None
 
-        # Convert player to communist
         from src.roles.role import Communist
 
         target_player.role = Communist()
 
-        # Change strategy to communist if player had fascist or liberal strategy
         from src.players.strategies.communist_strategy import CommunistStrategy
         from src.players.strategies.fascist_strategy import FascistStrategy
         from src.players.strategies.liberal_strategy import LiberalStrategy
@@ -115,40 +154,25 @@ class Radicalization(Power):
         if isinstance(target_player.strategy, (FascistStrategy, LiberalStrategy)):
             target_player.strategy = CommunistStrategy(target_player)
 
-        # # Update communist knowledge based on player count
-        # player_count = len(self.game.state.players)
-
-        # # If less than 11 players, communists know each other
-        # if player_count < 11:
-        #     # Update the new communist's knowledge
-        #     communist_players = [
-        #         p
-        #         for p in self.game.state.players
-        #         if p.role.party_membership == "communist"
-        #     ]
-
-        #     for communist in communist_players:
-        #         if not hasattr(communist, "known_communists"):
-        #             communist.known_communists = []
-
-        #         # Add all other communists to their knowledge
-        #         for other in communist_players:
-        #             if (
-        #                 other.id != communist.id
-        #                 and other.id not in communist.known_communists
-        #             ):
-        #                 communist.known_communists.append(other.id)
-
         return target_player
 
 
 class Propaganda(Power):
-    def execute(self):
-        """
-        View the top card and optionally discard it
+    """Poder de propaganda comunista.
+
+    Permite al ejecutor ver la carta superior del mazo y opcionalmente descartarla,
+    proporcionando control sobre las políticas que se promulgarán a continuación.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de propaganda.
+
+        Permite al Presidente ver la carta superior del mazo de políticas
+        y decidir si la descarta o la mantiene, influyendo en las próximas
+        decisiones políticas del juego.
 
         Returns:
-            policy: The viewed policy
+            Policy or None: La política vista, o None si no hay políticas disponibles.
         """
         if not self.game.state.board.policies:
             return None
@@ -165,17 +189,34 @@ class Propaganda(Power):
 
 
 class Impeachment(Power):
-    def execute(self, target_player, revealer_player):
-        """
-        Chancellor reveals party to someone else
+    """Poder de acusación comunista.
+
+    Obliga a un jugador a revelar su afiliación partidaria a otro jugador específico,
+    creando dinámicas de información asimétrica y posibles alianzas o traiciones.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de acusación.
+
+        Fuerza a un jugador objetivo a revelar su afiliación partidaria
+        a un jugador específico elegido por quien ejecuta el poder.
 
         Args:
-            target_player: Player who must reveal their party
-            revealer_player: Player who gets to see the party
+            target_player (Player): El jugador que debe revelar su afiliación.
+                Puede pasarse como primer argumento en args o como kwarg.
+            revealer_player (Player): El jugador que verá la afiliación.
+                Puede pasarse como segundo argumento en args o como kwarg.
 
         Returns:
-            bool: True if successful
+            bool: True si la operación fue exitosa.
         """
+        if len(args) >= 2:
+            target_player = args[0]
+            revealer_player = args[1]
+        else:
+            target_player = args[0] if args else kwargs.get("target_player")
+            revealer_player = kwargs.get("revealer_player")
+
         if not hasattr(revealer_player, "known_affiliations"):
             revealer_player.known_affiliations = {}
 

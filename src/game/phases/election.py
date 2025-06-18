@@ -1,49 +1,48 @@
-"""Election phase implementation for Secret Hitler XL game.
+"""Implementación de la fase electoral para el juego Secret Hitler XL.
 
-This module contains the ElectionPhase class which handles the nomination and voting
-process for president and chancellor candidates in the game.
+Este módulo contiene la clase ElectionPhase que maneja el proceso de nominación y
+votación para candidatos a presidente y canciller en el juego.
 """
 
 from src.game.phases.abstract_phase import GamePhase
+from src.game.phases.gameover import GameOverPhase
 
 
 class ElectionPhase(GamePhase):
-    """Handles the election phase of Secret Hitler XL.
+    """Maneja la fase electoral de Secret Hitler XL.
 
-    The election phase consists of:
-    1. Checking for marked players to execute
-    2. Nominating a chancellor candidate
-    3. Voting on the government
-    4. Handling election results and transitions
+    La fase electoral consiste en:
+    1. Verificación de jugadores marcados para ejecución
+    2. Nominación de candidato a canciller
+    3. Votación sobre el gobierno propuesto
+    4. Manejo de resultados electorales y transiciones
 
     Attributes:
-        game: The main game instance containing state and methods.
+        game: La instancia principal del juego que contiene el estado y métodos.
     """
 
     def execute(self):
-        """Execute the election phase logic.
+        """Ejecuta la lógica de la fase electoral.
 
-        Performs the complete election cycle including:
-        - Checking for pending executions
-        - Chancellor nomination
-        - Government voting
-        - Win condition checks
-        - Phase transitions
+        Realiza el ciclo electoral completo incluyendo:
+        - Verificación de ejecuciones pendientes
+        - Nominación del canciller
+        - Votación del gobierno
+        - Verificación de condiciones de victoria
+        - Transiciones de fase
 
         Returns:
-            GamePhase: The next phase to execute based on election results.
-                - LegislativePhase: If government is elected successfully
-                - GameOverPhase: If a win condition is met
-                - ElectionPhase: If election fails and game continues
-
-        Note:
-            This method handles several critical game mechanics:
-            - Chaos policy enactment after 3 failed elections
-            - Hitler chancellor win condition
-            - Term limit resets
-            - Election tracker management
+            GamePhase: La siguiente fase a ejecutar basada en los resultados electorales.
+                - LegislativePhase: Si el gobierno es elegido exitosamente
+                - GameOverPhase: Si se cumple una condición de victoria
+                - ElectionPhase: Si la elección falla y el juego continúa        Note:
+            Este método maneja varias mecánicas críticas del juego:
+            - Promulgación de política de caos después de 3 elecciones fallidas
+            - Condición de victoria de Hitler como canciller
+            - Restablecimiento de límites de mandato
+            - Gestión del contador electoral
         """
-        from src.game.phases.gameover import GameOverPhase
+
         from src.game.phases.legislative import LegislativePhase
 
         self._check_marked_for_execution()
@@ -73,7 +72,6 @@ class ElectionPhase(GamePhase):
                 self.game.state.winner = "fascist"
                 return GameOverPhase(self.game)
 
-            # Government elected, go to legislative phase
             self.game.state.president = self.game.state.president_candidate
             self.game.state.chancellor = self.game.state.chancellor_candidate
             self.game.state.election_tracker = 0
@@ -81,40 +79,36 @@ class ElectionPhase(GamePhase):
         else:
             self.game.state.president = self.game.state.president_candidate
 
-            # Vote failed, advance the election tracker
             self.game.state.election_tracker += 1
 
             if self.game.state.election_tracker >= 3:
                 self.game.logger.log(
                     "\n> Three failed elections in a row. Enacting a chaos policy."
                 )
-                # Enact top policy automatically
                 self.game.enact_chaos_policy()
                 self.game.state.election_tracker = 0
 
-                # Check if the game is over
                 if self.game.check_policy_win():
                     return GameOverPhase(self.game)
 
-                # Reset term limits
                 self.game.state.term_limited_players = []
 
-            self.game.set_next_president()  # Stay in election phase for next round
+            self.game.set_next_president()
             return self
 
     def _check_marked_for_execution(self):
-        """Check and execute players marked for execution.
+        """Verifica y ejecuta jugadores marcados para ejecución.
 
-        Verifies if a player marked for execution should be killed based on
-        the number of fascist policies enacted since they were marked.
+        Verifica si un jugador marcado para ejecución debe ser eliminado basándose en
+        el número de políticas fascistas promulgadas desde que fue marcado.
 
-        A player is executed if:
-        - They are marked for execution
-        - 3 or more fascist policies have been enacted since marking
+        Un jugador es ejecutado si:
+        - Está marcado para ejecución
+        - Se han promulgado 3 o más políticas fascistas desde el marcado
 
         Returns:
-            GameOverPhase: If Hitler is executed (liberal/communist win)
-            None: If no execution occurs or non-Hitler player executed
+            GameOverPhase: Si Hitler es ejecutado (victoria liberal/comunista)
+            None: Si no ocurre ejecución o se ejecuta un jugador no-Hitler
         """
         if (
             hasattr(self.game.state, "marked_for_execution")

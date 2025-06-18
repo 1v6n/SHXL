@@ -1,3 +1,9 @@
+"""Módulo del registro de poderes del juego Secret Hitler XL.
+
+Este módulo contiene la clase PowerRegistry que gestiona todos los poderes
+disponibles en el juego, incluyendo poderes fascistas, comunistas y de emergencia.
+"""
+
 from random import choice
 
 from src.game.powers.abstract_power import (
@@ -31,40 +37,42 @@ from src.game.powers.enabling_act_powers import (
 
 
 class PowerRegistry:
-    """Registry of all powers"""
+    """Registro de todos los poderes disponibles en el juego.
+
+    Esta clase proporciona métodos estáticos para obtener instancias de poderes,
+    determinar sus propietarios y seleccionar poderes de emergencia aleatorios.
+    """
 
     @staticmethod
     def get_power(power_name, game):
-        """
-        Get a power by name
+        """Obtiene un poder por su nombre.
 
         Args:
-            power_name: Name of the power
-            game: The game instance
+            power_name (str): Nombre del poder.
+            game: Instancia del juego.
 
         Returns:
-            Power: The power object
+            Power: El objeto del poder.
+
+        Raises:
+            ValueError: Si el nombre del poder no es reconocido.
         """
         power_map = {
-            # Fascist powers
             "investigate_loyalty": InvestigateLoyalty,
             "special_election": SpecialElection,
             "policy_peek": PolicyPeek,
             "execution": Execution,
-            # Communist powers
             "confession": Confession,
             "bugging": Bugging,
             "five_year_plan": FiveYearPlan,
             "congress": Congress,
             "radicalization": Radicalization,
-            # Article 48 powers (President)
             "propaganda": PresidentialPropaganda,
             "impeachment": PresidentialImpeachment,
             "marked_for_execution": PresidentialMarkedForExecution,
             "policy_peek_emergency": PresidentialPolicyPeek,
             "execution_emergency": PresidentialExecution,
             "pardon": PresidentialPardon,
-            # Enabling Act powers (Chancellor)
             "chancellor_propaganda": ChancellorPropaganda,
             "chancellor_impeachment": ChancellorImpeachment,
             "chancellor_marked_for_execution": ChancellorMarkedForExecution,
@@ -80,16 +88,14 @@ class PowerRegistry:
 
     @staticmethod
     def get_owner(power_name):
-        """
-        Get the owner of a power
+        """Obtiene el propietario de un poder.
 
         Args:
-            power_name: Name of the power
+            power_name (str): Nombre del poder.
 
         Returns:
-            PowerOwner: The owner of the power (PRESIDENT or CHANCELLOR)
+            PowerOwner: El propietario del poder (PRESIDENT o CHANCELLOR).
         """
-        # Chancellor powers
         chancellor_powers = {
             "chancellor_propaganda",
             "chancellor_impeachment",
@@ -102,18 +108,15 @@ class PowerRegistry:
         if power_name in chancellor_powers:
             return PowerOwner.CHANCELLOR
 
-        # All other powers belong to the president
         return PowerOwner.PRESIDENT
 
     @staticmethod
     def get_article48_power():
-        """
-        Get a random Article 48 power (President's emergency powers)
+        """Obtiene un poder aleatorio del Artículo 48 (poderes de emergencia del Presidente).
 
         Returns:
-            str: Power name
+            str: Nombre del poder.
         """
-
         article48_powers = [
             "propaganda",
             "impeachment",
@@ -123,19 +126,15 @@ class PowerRegistry:
             "pardon",
         ]
 
-        # TODO this is for testing purposes, should be randomized in the future
-
-        return article48_powers[3]
+        return choice(article48_powers)
 
     @staticmethod
     def get_enabling_act_power():
-        """
-        Get a random Enabling Act power (Chancellor's emergency powers)
+        """Obtiene un poder aleatorio de la Ley Habilitante (poderes de emergencia del Canciller).
 
         Returns:
-            str: Power name
+            str: Nombre del poder.
         """
-
         enabling_act_powers = [
             "chancellor_propaganda",
             "chancellor_impeachment",
@@ -145,6 +144,4 @@ class PowerRegistry:
             "vote_of_no_confidence",
         ]
 
-        # TODO this is for testing purposes, should be randomized in the future
-
-        return enabling_act_powers[5]
+        return choice(enabling_act_powers)

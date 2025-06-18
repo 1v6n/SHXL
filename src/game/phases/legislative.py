@@ -1,8 +1,8 @@
-"""Legislative phase implementation for Secret Hitler XL game.
+"""Implementación de la fase legislativa para el juego Secret Hitler XL.
 
-This module contains the LegislativePhase class which handles policy drawing,
-chancellor and president choices, veto power, policy enactment, and executive
-actions in the game.
+Este módulo contiene la clase LegislativePhase que maneja el sorteo de políticas,
+las decisiones del canciller y presidente, el poder de veto, la promulgación de políticas
+y las acciones ejecutivas en el juego.
 """
 
 from src.game.phases.abstract_phase import GamePhase
@@ -11,37 +11,36 @@ from src.game.phases.gameover import GameOverPhase
 
 
 class LegislativePhase(GamePhase):
-    """Handles the legislative phase of Secret Hitler XL.
+    """Maneja la fase legislativa de Secret Hitler XL.
 
-    The legislative phase consists of:
-    1. President draws 3 policies and discards 1
-    2. Chancellor receives 2 policies and may propose veto
-    3. President may accept/reject veto
-    4. Chancellor enacts 1 policy and discards 1
-    5. Executive power execution (if granted)
-    6. Win condition checks
-    7. Turn advancement and term limit updates
+    La fase legislativa consiste en:
+    1. El Presidente roba 3 políticas y descarta 1
+    2. El Canciller recibe 2 políticas y puede proponer veto
+    3. El Presidente puede aceptar/rechazar el veto
+    4. El Canciller promulga 1 política y descarta 1
+    5. Ejecución de poder ejecutivo (si se otorga)
+    6. Verificación de condiciones de victoria
+    7. Avance de turno y actualización de límites de mandato
 
     Attributes:
-        game: The main game instance containing state and methods.
+        game: La instancia principal del juego que contiene el estado y métodos.
     """
 
     def execute(self):
-        """Execute the legislative phase logic.
+        """Ejecuta la lógica de la fase legislativa.
 
-        Performs the complete legislative cycle including:
-        - Policy drawing and presidential choice
-        - Veto proposal and resolution
-        - Chancellor policy choice and enactment
-        - Executive power execution
-        - Win condition checks
-        - Term limit management
-        - Turn advancement
+        Realiza el ciclo legislativo completo incluyendo:
+        - Sorteo de políticas y elección presidencial
+        - Propuesta y resolución de veto
+        - Elección y promulgación de política del canciller
+        - Ejecución de poder ejecutivo        - Verificación de condiciones de victoria
+        - Gestión de límites de mandato
+        - Avance de turno
 
         Returns:
-            GamePhase: The next phase to execute based on legislative results.
-                - ElectionPhase: If veto succeeds or normal turn progression
-                - GameOverPhase: If win condition is met or Hitler is executed
+            GamePhase: La siguiente fase a ejecutar basada en los resultados legislativos.
+                - ElectionPhase: Si el veto tiene éxito o progresión normal de turno
+                - GameOverPhase: Si se cumple una condición de victoria o Hitler es ejecutado
         """
 
         policies = self.game.state.board.draw_policy(3)

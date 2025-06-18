@@ -2,21 +2,37 @@ from src.game.powers.abstract_power import Power, PowerOwner
 
 
 class Article48Power(Power):
-    """Base class for Article 48 powers (President's emergency powers)"""
+    """Clase base para los poderes del Artículo 48 (poderes de emergencia del Presidente).
+
+    Esta clase define la estructura común para todos los poderes especiales que puede
+    ejercer el Presidente cuando se activa el Artículo 48 en el juego.
+    """
 
     @staticmethod
     def get_owner():
-        """Get the owner of this power"""
+        """Obtiene el propietario de este poder.
+
+        Returns:
+            PowerOwner: El propietario del poder (PRESIDENT).
+        """
         return PowerOwner.PRESIDENT
 
 
 class PresidentialPropaganda(Article48Power):
-    def execute(self):
-        """
-        President can view the top card and optionally discard it
+    """Poder de propaganda presidencial.
+
+    Permite al Presidente ver la carta superior del mazo y opcionalmente descartarla
+    para influir en las políticas que se van a promulgar.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de propaganda presidencial.
+
+        El Presidente puede ver la carta superior del mazo de políticas y decidir
+        si la descarta o la mantiene en el mazo para influir en futuras decisiones.
 
         Returns:
-            policy: The viewed policy
+            Policy or None: La política vista, o None si no hay políticas disponibles.
         """
         if not self.game.state.board.policies:
             return None
@@ -32,34 +48,60 @@ class PresidentialPropaganda(Article48Power):
 
 
 class PresidentialPolicyPeek(Article48Power):
-    def execute(self):
-        """
-        President views the top 3 policies in the draw pile
+    """Poder de inspección de políticas presidencial.
+
+    Permite al Presidente ver las tres cartas superiores del mazo de políticas
+    sin extraerlas, proporcionando información estratégica sobre las próximas políticas.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de inspección de políticas presidencial.
+
+        Permite al Presidente examinar las tres cartas superiores del mazo
+        de políticas para obtener información estratégica sin modificar el orden.
 
         Returns:
-            list: The top 3 policies
+            list: Lista con las tres políticas superiores del mazo.
         """
-        # Get the top 3 policies without drawing them
         top_policies = self.game.state.board.policies[:3]
-
         return top_policies
 
 
 class PresidentialImpeachment(Article48Power):
-    def execute(self, target_player, revealer_player=None):
-        """
-        Chancellor reveals party to someone chosen by the president
+    """Poder de acusación presidencial.
+
+    Permite al Presidente forzar al Canciller a revelar su afiliación partidaria
+    a un jugador específico elegido por el Presidente.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de acusación presidencial.
+
+        El Presidente puede forzar al Canciller a revelar su afiliación partidaria
+        a un jugador específico. Si no se especifica el receptor, el Presidente
+        debe elegir uno de los jugadores elegibles.
 
         Args:
-            target_player: Player who must reveal their party (the chancellor)
-            revealer_player: Player who gets to see the party (chosen by president)
+            target_player (Player): El jugador que debe revelar su afiliación
+                (típicamente el Canciller). Puede pasarse como primer argumento
+                en args o como kwarg.
+            revealer_player (Player, optional): El jugador que verá la afiliación.
+                Si no se proporciona, el Presidente debe elegir uno. Puede pasarse
+                como segundo argumento en args o como kwarg.
 
         Returns:
-            bool: True if successful
+            bool: True si la operación fue exitosa, False en caso contrario.
         """
-        # If revealer_player is not provided, president must choose
+        if len(args) >= 1:
+            target_player = args[0]
+            revealer_player = (
+                args[1] if len(args) >= 2 else kwargs.get("revealer_player")
+            )
+        else:
+            target_player = kwargs.get("target_player")
+            revealer_player = kwargs.get("revealer_player")
+
         if revealer_player is None:
-            # Get eligible players (not president or chancellor)
             eligible_players = [
                 p
                 for p in self.game.state.active_players
@@ -83,23 +125,33 @@ class PresidentialImpeachment(Article48Power):
 
 
 class PresidentialMarkedForExecution(Article48Power):
-    def execute(self, target_player):
-        """
-        President marks a player for execution after 3 fascist policies
+    """Poder presidencial de marcado para ejecución.
+
+    Permite al Presidente marcar a un jugador para ser ejecutado después
+    de que se promulguen 3 políticas fascistas adicionales.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder presidencial de marcado para ejecución.
+
+        Marca a un jugador específico para ser ejecutado automáticamente
+        después de que se promulguen 3 políticas fascistas más, a menos
+        que sea perdonado posteriormente.
 
         Args:
-            target_player: The player to mark
+            target_player (Player): El jugador que será marcado para ejecución.
+                Puede pasarse como primer argumento en args o como kwarg.
 
         Returns:
-            player: The marked player
+            Player: El jugador marcado para ejecución.
         """
-        # Store the player and how the fascist tracker was when they were marked
+        target_player = args[0] if args else kwargs.get("target_player")
+
         self.game.state.marked_for_execution = target_player
         self.game.state.marked_for_execution_tracker = (
             self.game.state.board.fascist_track
         )
 
-        # Log that the player was marked for future execution
         self.game.logger.log(
             f"Player {target_player.id} ({target_player.name}) has been marked for execution."
         )
@@ -111,20 +163,29 @@ class PresidentialMarkedForExecution(Article48Power):
 
 
 class PresidentialExecution(Article48Power):
-    def execute(self, target_player):
-        """
-        President executes a player
+    """Poder de ejecución presidencial.
+
+    Permite al Presidente ejecutar inmediatamente a un jugador,
+    eliminándolo permanentemente del juego.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de ejecución presidencial inmediata.
+
+        Ejecuta a un jugador específico, marcándolo como muerto y
+        eliminándolo de la lista de jugadores activos de forma permanente.
 
         Args:
-            target_player: The player to execute
+            target_player (Player): El jugador que será ejecutado.
+                Puede pasarse como primer argumento en args o como kwarg.
 
         Returns:
-            player: The executed player
+            Player: El jugador ejecutado.
         """
-        # Mark the player as dead
+        target_player = args[0] if args else kwargs.get("target_player")
+
         target_player.is_dead = True
 
-        # Remove from active players
         if target_player in self.game.state.active_players:
             self.game.state.active_players.remove(target_player)
 
@@ -132,12 +193,22 @@ class PresidentialExecution(Article48Power):
 
 
 class PresidentialPardon(Article48Power):
-    def execute(self):
-        """
-        President pardons a marked player
+    """Poder de perdón presidencial.
+
+    Permite al Presidente perdonar a un jugador que había sido previamente
+    marcado para ejecución, salvándolo de la muerte automática.
+    """
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de perdón presidencial.
+
+        Perdona a un jugador que había sido marcado para ejecución,
+        eliminando la marca y salvándolo de la muerte automática cuando
+        se promulguen las políticas fascistas restantes.
 
         Returns:
-            player: The pardoned player or None (if there wasn't a marked player)
+            Player or None: El jugador perdonado, o None si no había ningún
+                jugador marcado para ejecución.
         """
         if not self.game.state.marked_for_execution:
             self.game.logger.log("No player is currently marked for execution.")
@@ -148,7 +219,6 @@ class PresidentialPardon(Article48Power):
             f"Player {pardoned.id} ({pardoned.name}) has been pardoned from execution."
         )
 
-        # Clear the marked for execution
         self.game.state.marked_for_execution = None
         self.game.state.marked_for_execution_tracker = None
 

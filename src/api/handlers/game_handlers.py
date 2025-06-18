@@ -1,5 +1,9 @@
-"""
-Game management business logic
+"""Módulo de manejadores de lógica de negocio para la gestión de partidas.
+
+Este módulo contiene la lógica de negocio para la creación, configuración,
+unión de jugadores y gestión del estado de las partidas de Secret Hitler XL.
+Actúa como capa intermedia entre las rutas de la API y el modelo de datos
+del juego.
 """
 
 import uuid
@@ -25,7 +29,18 @@ from ..utils.game_state_helpers import (
 
 
 def create_new_game_handler(data):
-    """Handle new game creation"""
+    """Crea una nueva partida con la configuración proporcionada.
+
+    Args:
+        data: Diccionario con la configuración de la partida.
+            Contiene parámetros opcionales como playerCount,
+            withCommunists, withAntiPolicies, withEmergencyPowers
+            y strategy.
+
+    Returns:
+        dict: Diccionario con el ID de la partida creada y
+            el estado inicial del juego.
+    """
     if not data:
         data = {}
 
@@ -63,7 +78,18 @@ def create_new_game_handler(data):
 
 
 def join_game_handler(game_id, data):
-    """Handle player joining game"""
+    """Maneja la unión de un jugador a una partida.
+
+    Args:
+        game_id: Identificador único de la partida.
+        data: Diccionario con los datos del jugador que se une.
+            Debe contener 'playerName'.
+
+    Returns:
+        tuple: Tupla con respuesta JSON y código de estado HTTP.
+            En caso de éxito, incluye playerId, currentPlayers
+            y maxPlayers.
+    """
     if not data:
         return jsonify({"error": "Missing request body"}), 400
 
@@ -105,7 +131,17 @@ def join_game_handler(game_id, data):
 
 
 def start_game_handler(game_id, data):
-    """Handle game start"""
+    """Inicia una partida existente.
+
+    Args:
+        game_id: Identificador único de la partida.
+        data: Diccionario con los datos necesarios para iniciar.
+            Debe contener 'hostPlayerID'.
+
+    Returns:
+        tuple: Tupla con respuesta JSON y código de estado HTTP.
+            En caso de éxito, incluye el estado completo del juego.
+    """
     if not data:
         return jsonify({"error": "Missing request body"}), 400
 
@@ -198,7 +234,17 @@ def start_game_handler(game_id, data):
 
 
 def add_bots_handler(game_id, data):
-    """Handle adding bots to game"""
+    """Añade bots a una partida existente.
+
+    Args:
+        game_id: Identificador único de la partida.
+        data: Diccionario con la configuración de los bots.
+            Puede contener count, strategy y namePrefix.
+
+    Returns:
+        tuple: Tupla con respuesta JSON y código de estado HTTP.
+            En caso de éxito, incluye información de los bots añadidos.
+    """
     if not data:
         data = {}
 
@@ -221,7 +267,7 @@ def add_bots_handler(game_id, data):
         return jsonify({"error": f"Only {available_spots} spots available"}), 403
 
     added_bots = []
-    for i in range(bot_count):
+    for _ in range(bot_count):
         new_id = len(game.state.players)
         bot_name = f"{name_prefix}_{new_id + 1}"
 
@@ -253,7 +299,17 @@ def add_bots_handler(game_id, data):
 
 
 def get_game_state_handler(game_id, requesting_player_id=None):
-    """Handle game state retrieval"""
+    """Obtiene el estado actual de una partida.
+
+    Args:
+        game_id: Identificador único de la partida.
+        requesting_player_id: ID del jugador que solicita el estado.
+            Utilizado para filtrar información privada.
+
+    Returns:
+        tuple: Tupla con respuesta JSON y código de estado HTTP.
+            En caso de éxito, incluye el estado completo del juego.
+    """
     game = games.get(game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404

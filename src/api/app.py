@@ -1,5 +1,7 @@
-"""
-SHXL Game API Server - Main Application
+"""Servidor API del juego Secret Hitler XL - Aplicación Principal.
+
+Este módulo contiene la configuración y creación de la aplicación Flask
+que sirve como API para el juego Secret Hitler XL.
 """
 
 from flask import Flask
@@ -13,7 +15,16 @@ from .routes.power_routes import power_bp
 
 
 def create_app():
-    """Create and configure Flask application"""
+    """Crea y configura la aplicación Flask.
+
+    Inicializa una aplicación Flask con configuración CORS habilitada y
+    registra todos los blueprints necesarios para las rutas de la API
+    del juego Secret Hitler XL.
+
+    Returns:
+        Flask: La aplicación Flask configurada con todos los blueprints
+            registrados y CORS habilitado.
+    """
     app = Flask(__name__)
     CORS(app)
 

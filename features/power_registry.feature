@@ -73,9 +73,3 @@ Feature: Registro de Poderes del Juego
         When obtengo todos los poderes fascistas disponibles
         Then todos los poderes fascistas deberían ser instanciables
         And cada poder debería tener un propietario válido
-
-    Scenario: Verificar poderes de emergencia predeterminados
-        When solicito múltiples poderes del Artículo 48
-        Then todos deberían devolver "policy_peek_emergency"
-        When solicito múltiples poderes del Acta Habilitante
-        Then todos deberían devolver "vote_of_no_confidence"
