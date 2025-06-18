@@ -120,6 +120,7 @@ def step_given_current_phase_execute(context):
     phase_mock.execute = Mock(return_value=phase_mock)
 
     original_start_game = context.game.start_game
+
     def mock_start_game():
         phase_mock.execute()
         context.game.state.game_over = True
@@ -127,6 +128,7 @@ def step_given_current_phase_execute(context):
 
     context.game.start_game = mock_start_game
     context.phase_mock = phase_mock
+
 
 @given('state.winner is "{winner}"')
 def step_given_state_winner(context, winner):
@@ -621,7 +623,9 @@ def step_given_active_players_votes(context, votes):
     context.expected_votes = vote_list
 
     context.game.state.president_candidate = mock_players[0]
-    context.game.state.chancellor_candidate = mock_players[1] if len(mock_players) > 1 else mock_players[0]
+    context.game.state.chancellor_candidate = (
+        mock_players[1] if len(mock_players) > 1 else mock_players[0]
+    )
 
 
 @when("llamo a vote_on_government")

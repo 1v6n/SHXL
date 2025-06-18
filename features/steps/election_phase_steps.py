@@ -21,9 +21,11 @@ class MockLegislativePhase:
     def __init__(self, game):
         self.game = game
 
+
 class MockGameOverPhase:
     def __init__(self, game):
         self.game = game
+
 
 LegislativePhase = MockLegislativePhase
 GameOverPhase = MockGameOverPhase
@@ -83,7 +85,8 @@ def setup_game_with_players(context, num_players):
 # NOMINATION PHASE STEPS
 # =============================================================================
 
-@given('una partida de Secret Hitler XL con jugadores activos')
+
+@given("una partida de Secret Hitler XL con jugadores activos")
 def step_impl_game_with_active_players(context):
     """Setup game with default 8 active players.
 
@@ -93,7 +96,7 @@ def step_impl_game_with_active_players(context):
     setup_game_with_players(context, 8)
 
 
-@given('el presidente en turno es el jugador {presidente:d}')
+@given("el presidente en turno es el jugador {presidente:d}")
 def step_impl_current_president(context, presidente):
     """Set current president candidate.
 
@@ -101,12 +104,12 @@ def step_impl_current_president(context, presidente):
         context: Behave context object.
         presidente (int): ID of the president candidate.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     context.game.state.president_candidate = context.players[presidente - 1]
 
 
-@given('el último presidente electo fue el jugador {ultimo_presidente:d}')
+@given("el último presidente electo fue el jugador {ultimo_presidente:d}")
 def step_impl_last_president(context, ultimo_presidente):
     """Set last elected president.
 
@@ -117,7 +120,7 @@ def step_impl_last_president(context, ultimo_presidente):
     context.game.state.president = context.players[ultimo_presidente - 1]
 
 
-@given('el último canciller electo fue el jugador {ultimo_canciller:d}')
+@given("el último canciller electo fue el jugador {ultimo_canciller:d}")
 def step_impl_last_chancellor(context, ultimo_canciller):
     """Set last elected chancellor.
 
@@ -128,7 +131,7 @@ def step_impl_last_chancellor(context, ultimo_canciller):
     context.game.state.chancellor = context.players[ultimo_canciller - 1]
 
 
-@given('hay {num:d} jugadores activos')
+@given("hay {num:d} jugadores activos")
 def step_impl_active_players_count(context, num):
     """Setup game with specific number of active players.
 
@@ -136,7 +139,7 @@ def step_impl_active_players_count(context, num):
         context: Behave context object.
         num (int): Number of active players to create.
     """
-    if hasattr(context, 'game') and hasattr(context.game.state, 'active_players'):
+    if hasattr(context, "game") and hasattr(context.game.state, "active_players"):
         if num > len(context.players):
             for i in range(len(context.players) + 1, num + 1):
                 player = Mock()
@@ -154,7 +157,7 @@ def step_impl_active_players_count(context, num):
         setup_game_with_players(context, num)
 
 
-@given('la partida contiene jugadores humanos y bots')
+@given("la partida contiene jugadores humanos y bots")
 def step_impl_mixed_players(context):
     """Setup game with mix of human players and bots.
 
@@ -163,10 +166,10 @@ def step_impl_mixed_players(context):
     """
     setup_game_with_players(context, 8)
     for i, p in enumerate(context.players):
-        p.is_bot = (i % 2 == 0)
+        p.is_bot = i % 2 == 0
 
 
-@given('se han realizado tres elecciones fallidas consecutivas')
+@given("se han realizado tres elecciones fallidas consecutivas")
 def step_impl_three_failed_elections(context):
     """Setup scenario with three consecutive failed elections.
 
@@ -175,7 +178,7 @@ def step_impl_three_failed_elections(context):
     Args:
         context: Behave context object.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
 
     context.game.state.election_tracker = 3
@@ -188,7 +191,8 @@ def step_impl_three_failed_elections(context):
 # VOTING PHASE STEPS - GIVEN
 # =============================================================================
 
-@given('el tracker de elecciones fallidas está en {value:d}')
+
+@given("el tracker de elecciones fallidas está en {value:d}")
 def step_impl_voting_election_tracker(context, value):
     """Set election tracker value.
 
@@ -196,12 +200,12 @@ def step_impl_voting_election_tracker(context, value):
         context: Behave context object.
         value (int): Election tracker value.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     context.game.state.election_tracker = value
 
 
-@given('hay {count:d} políticas fascistas promulgadas')
+@given("hay {count:d} políticas fascistas promulgadas")
 def step_impl_voting_fascist_policies(context, count):
     """Set number of fascist policies enacted.
 
@@ -209,13 +213,13 @@ def step_impl_voting_fascist_policies(context, count):
         context: Behave context object.
         count (int): Number of fascist policies.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     context.game.state.board.fascist_track = count
     context.game.state.fascist_track = count
 
 
-@given('el jugador {player_id:d} es Hitler para votación')
+@given("el jugador {player_id:d} es Hitler para votación")
 def step_impl_voting_player_is_hitler(context, player_id):
     """Mark player as Hitler.
 
@@ -223,21 +227,21 @@ def step_impl_voting_player_is_hitler(context, player_id):
         context: Behave context object.
         player_id (int): ID of Hitler player.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     player = context.players[player_id - 1]
     player.is_hitler = True
     player.is_fascist = True
 
 
-@given('hay jugadores humanos en la partida')
+@given("hay jugadores humanos en la partida")
 def step_impl_voting_human_players(context):
     """Set some players as human and others as bots.
 
     Args:
         context: Behave context object.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
 
     for i in range(3):
@@ -248,20 +252,20 @@ def step_impl_voting_human_players(context):
         context.players[i].is_bot = True
 
 
-@given('todos los jugadores son bots')
+@given("todos los jugadores son bots")
 def step_impl_voting_all_bots(context):
     """Set all players as bots.
 
     Args:
         context: Behave context object.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     for player in context.players:
         player.is_bot = True
 
 
-@given('el presidente ha nominado como canciller al jugador {canciller:d}')
+@given("el presidente ha nominado como canciller al jugador {canciller:d}")
 def step_impl_chancellor_nominated(context, canciller):
     """Set nominated chancellor candidate.
 
@@ -269,12 +273,12 @@ def step_impl_chancellor_nominated(context, canciller):
         context: Behave context object.
         canciller (int): ID of the nominated chancellor.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     context.game.state.chancellor_candidate = context.players[canciller - 1]
 
 
-@given('los jugadores votan de la siguiente manera')
+@given("los jugadores votan de la siguiente manera")
 def step_impl_voting_votes_table(context):
     """Set votes from table data.
 
@@ -283,8 +287,8 @@ def step_impl_voting_votes_table(context):
     """
     context.votes = {}
     for row in context.table:
-        player_id = int(row['jugador'])
-        vote = row['voto']
+        player_id = int(row["jugador"])
+        vote = row["voto"]
         context.votes[player_id] = vote
 
 
@@ -296,15 +300,15 @@ def step_impl_voting_ja_votes(context, votos_ja):
         context: Behave context object.
         votos_ja (int): Number of Ja votes.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
 
-    if not hasattr(context, 'votes'):
+    if not hasattr(context, "votes"):
         context.votes = {}
 
     context.expected_ja_votes = votos_ja
 
-    if hasattr(context, 'expected_nein_votes'):
+    if hasattr(context, "expected_nein_votes"):
         _process_vote_counts(context)
 
 
@@ -316,18 +320,19 @@ def step_impl_voting_nein_votes(context, votos_nein):
         context: Behave context object.
         votos_nein (int): Number of Nein votes.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
 
-    if not hasattr(context, 'votes'):
+    if not hasattr(context, "votes"):
         context.votes = {}
 
     context.expected_nein_votes = votos_nein
 
-    if hasattr(context, 'expected_ja_votes'):
+    if hasattr(context, "expected_ja_votes"):
         _process_vote_counts(context)
 
-@given('el jugador {player_id:d} está marcado para ejecución')
+
+@given("el jugador {player_id:d} está marcado para ejecución")
 def step_impl_voting_marked_for_execution(context, player_id):
     """Mark player for execution.
 
@@ -335,14 +340,14 @@ def step_impl_voting_marked_for_execution(context, player_id):
         context: Behave context object.
         player_id (int): ID of player marked for execution.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
     marked_player = context.players[player_id - 1]
     context.game.state.marked_for_execution = marked_player
     context.game.state.marked_for_execution_tracker = context.game.state.fascist_track
 
 
-@given('han pasado {count:d} políticas fascistas desde el marcado')
+@given("han pasado {count:d} políticas fascistas desde el marcado")
 def step_impl_voting_policies_since_marking(context, count):
     """Set fascist policies enacted since marking.
 
@@ -350,10 +355,10 @@ def step_impl_voting_policies_since_marking(context, count):
         context: Behave context object.
         count (int): Number of fascist policies since marking.
     """
-    if not hasattr(context, 'game'):
+    if not hasattr(context, "game"):
         setup_game_with_players(context, 8)
 
-    marked_at = getattr(context.game.state, 'marked_for_execution_tracker', 0)
+    marked_at = getattr(context.game.state, "marked_for_execution_tracker", 0)
     total_fascist_policies = marked_at + count
 
     context.game.state.board.fascist_track = total_fascist_policies
@@ -364,7 +369,8 @@ def step_impl_voting_policies_since_marking(context, count):
 # WHEN STEPS - NOMINATION AND VOTING
 # =============================================================================
 
-@when('el presidente nomina como canciller al jugador {candidato:d}')
+
+@when("el presidente nomina como canciller al jugador {candidato:d}")
 def step_impl_nominate_chancellor(context, candidato):
     """President nominates specific player as chancellor.
 
@@ -388,7 +394,10 @@ def step_impl_nominate_chancellor(context, candidato):
         if last_pres:
             elegibles = [p for p in elegibles if p != last_pres]
 
-    if hasattr(context.game.state, 'election_tracker') and context.game.state.election_tracker >= 3:
+    if (
+        hasattr(context.game.state, "election_tracker")
+        and context.game.state.election_tracker >= 3
+    ):
         elegibles = []
 
     context.elegibles = elegibles
@@ -399,13 +408,15 @@ def step_impl_nominate_chancellor(context, candidato):
     if context.nominacion_valida:
         context.game.state.chancellor_candidate = candidato_obj
 
-    context.game.nominate_chancellor = lambda: candidato_obj if context.nominacion_valida else None
+    context.game.nominate_chancellor = lambda: (
+        candidato_obj if context.nominacion_valida else None
+    )
 
     context.election_phase = ElectionPhase(context.game)
     context.result = context.game.nominate_chancellor()
 
 
-@when('el presidente intenta nominar como canciller al jugador {candidato:d}')
+@when("el presidente intenta nominar como canciller al jugador {candidato:d}")
 def step_impl_attempt_nominate_specific_chancellor(context, candidato):
     """President attempts to nominate specific player as chancellor.
 
@@ -431,7 +442,10 @@ def step_impl_attempt_nominate_specific_chancellor(context, candidato):
         if last_pres:
             elegibles = [p for p in elegibles if p != last_pres]
 
-    if hasattr(context.game.state, 'election_tracker') and context.game.state.election_tracker >= 3:
+    if (
+        hasattr(context.game.state, "election_tracker")
+        and context.game.state.election_tracker >= 3
+    ):
         elegibles = []
 
     context.elegibles = elegibles
@@ -442,11 +456,13 @@ def step_impl_attempt_nominate_specific_chancellor(context, candidato):
     if context.nominacion_valida:
         context.game.state.chancellor_candidate = candidato_obj
 
-    context.game.nominate_chancellor = lambda: candidato_obj if context.nominacion_valida else None
+    context.game.nominate_chancellor = lambda: (
+        candidato_obj if context.nominacion_valida else None
+    )
     context.result = context.game.nominate_chancellor()
 
 
-@when('el presidente intenta nominar un candidato a canciller')
+@when("el presidente intenta nominar un candidato a canciller")
 def step_impl_nominate_any_chancellor(context):
     """President attempts to nominate any chancellor candidate.
 
@@ -484,20 +500,24 @@ def step_impl_nominate_any_chancellor(context):
     context.result = context.game.nominate_chancellor()
 
 
-@when('el presidente nomina como canciller a un bot elegible')
+@when("el presidente nomina como canciller a un bot elegible")
 def step_impl_nominate_bot_chancellor(context):
     """President nominates an eligible bot as chancellor.
 
     Args:
         context: Behave context object.
     """
-    elegibles = [p for p in context.players if p.is_bot and p != context.game.state.president_candidate]
+    elegibles = [
+        p
+        for p in context.players
+        if p.is_bot and p != context.game.state.president_candidate
+    ]
     candidato = elegibles[0] if elegibles else None
     context.candidato = candidato
     context.nominacion_valida = candidato is not None
 
 
-@when('se procesan los votos')
+@when("se procesan los votos")
 def step_impl_voting_process_votes(context):
     """Process the votes and determine outcome.
 
@@ -520,9 +540,11 @@ def step_impl_voting_process_votes(context):
         context.game.state.chancellor = context.game.state.chancellor_candidate
         context.game.state.election_tracker = 0
 
-        if (hasattr(context.game.state.chancellor, 'is_hitler') and
-            context.game.state.chancellor.is_hitler and
-            context.game.state.board.fascist_track >= 3):
+        if (
+            hasattr(context.game.state.chancellor, "is_hitler")
+            and context.game.state.chancellor.is_hitler
+            and context.game.state.board.fascist_track >= 3
+        ):
             context.game.state.winner = "fascist"
             context.next_phase = GameOverPhase(context.game)
         else:
@@ -539,18 +561,20 @@ def step_impl_voting_process_votes(context):
         context.next_phase = ElectionPhase(context.game)
 
 
-@when('inicia la votación')
+@when("inicia la votación")
 def step_impl_voting_starts(context):
     """Voting phase starts.
 
     Args:
         context: Behave context object.
     """
-    if (hasattr(context.game.state, 'marked_for_execution') and
-        context.game.state.marked_for_execution and
-        hasattr(context.game.state, 'fascist_track')):
+    if (
+        hasattr(context.game.state, "marked_for_execution")
+        and context.game.state.marked_for_execution
+        and hasattr(context.game.state, "fascist_track")
+    ):
 
-        marked_tracker = getattr(context.game.state, 'marked_for_execution_tracker', 0)
+        marked_tracker = getattr(context.game.state, "marked_for_execution_tracker", 0)
         current_fascist_track = context.game.state.fascist_track
         policies_since_marking = current_fascist_track - marked_tracker
 
@@ -569,7 +593,7 @@ def step_impl_voting_starts(context):
     context.election_phase = election_phase
 
 
-@when('se muestran los resultados de votación')
+@when("se muestran los resultados de votación")
 def step_impl_voting_show_results(context):
     """Show voting results.
 
@@ -583,7 +607,8 @@ def step_impl_voting_show_results(context):
 # THEN STEPS - NOMINATION RESULTS
 # =============================================================================
 
-@then('la nominación es {resultado}')
+
+@then("la nominación es {resultado}")
 def step_impl_nomination_result(context, resultado):
     """Verify nomination result.
 
@@ -595,12 +620,16 @@ def step_impl_nomination_result(context, resultado):
         AssertionError: If nomination result doesn't match expected.
     """
     if resultado.strip() == "válida":
-        assert context.nominacion_valida, f"La nominación debería ser válida, pero fue inválida."
+        assert (
+            context.nominacion_valida
+        ), f"La nominación debería ser válida, pero fue inválida."
     else:
-        assert not context.nominacion_valida, f"La nominación debería ser inválida, pero fue válida."
+        assert (
+            not context.nominacion_valida
+        ), f"La nominación debería ser inválida, pero fue válida."
 
 
-@then('la lista de candidatos elegibles contiene a {esperados}')
+@then("la lista de candidatos elegibles contiene a {esperados}")
 def step_impl_eligible_candidates_list(context, esperados):
     """Verify list of eligible candidates.
 
@@ -626,7 +655,9 @@ def step_impl_eligible_candidates_list(context, esperados):
         if last_pres:
             excluidos.append(last_pres)
 
-        candidatos_esperados = [p for p in active_players if p not in excluidos and not p.is_dead]
+        candidatos_esperados = [
+            p for p in active_players if p not in excluidos and not p.is_dead
+        ]
 
     elif "todos excepto" in esperados:
         ids_excluidos = []
@@ -635,7 +666,9 @@ def step_impl_eligible_candidates_list(context, esperados):
             p = p.strip()
             if p.isdigit():
                 ids_excluidos.append(int(p))
-        candidatos_esperados = [p for p in active_players if p.id not in ids_excluidos and not p.is_dead]
+        candidatos_esperados = [
+            p for p in active_players if p.id not in ids_excluidos and not p.is_dead
+        ]
 
     elif "jugadores" in esperados:
         ids_incluidos = []
@@ -644,13 +677,16 @@ def step_impl_eligible_candidates_list(context, esperados):
             p = p.strip()
             if p.isdigit():
                 ids_incluidos.append(int(p))
-        candidatos_esperados = [p for p in active_players if p.id in ids_incluidos and not p.is_dead]
+        candidatos_esperados = [
+            p for p in active_players if p.id in ids_incluidos and not p.is_dead
+        ]
 
-    assert set(context.elegibles) == set(candidatos_esperados), \
-        f"Esperados: {[p.id for p in candidatos_esperados]}, Obtenidos: {[p.id for p in context.elegibles]}"
+    assert set(context.elegibles) == set(
+        candidatos_esperados
+    ), f"Esperados: {[p.id for p in candidatos_esperados]}, Obtenidos: {[p.id for p in context.elegibles]}"
 
 
-@then('la lista de candidatos elegibles está vacía')
+@then("la lista de candidatos elegibles está vacía")
 def step_impl_empty_eligible_list(context):
     """Verify eligible candidates list is empty.
 
@@ -663,7 +699,7 @@ def step_impl_empty_eligible_list(context):
     assert context.elegibles == [], "La lista de candidatos debería estar vacía."
 
 
-@then('se promulga automáticamente una policy de caos')
+@then("se promulga automáticamente una policy de caos")
 def step_impl_chaos_policy_enacted(context):
     """Verify chaos policy was automatically enacted.
 
@@ -680,7 +716,8 @@ def step_impl_chaos_policy_enacted(context):
 # THEN STEPS - VOTING RESULTS
 # =============================================================================
 
-@then('el gobierno es aprobado')
+
+@then("el gobierno es aprobado")
 def step_impl_voting_government_approved(context):
     """Verify government was approved.
 
@@ -690,10 +727,12 @@ def step_impl_voting_government_approved(context):
     Raises:
         AssertionError: If government was not approved.
     """
-    assert context.vote_result == True, f"Government should be approved, but was rejected. Ja: {context.ja_votes}, Nein: {context.nein_votes}"
+    assert (
+        context.vote_result == True
+    ), f"Government should be approved, but was rejected. Ja: {context.ja_votes}, Nein: {context.nein_votes}"
 
 
-@then('el gobierno es rechazado')
+@then("el gobierno es rechazado")
 def step_impl_voting_government_rejected(context):
     """Verify government was rejected.
 
@@ -703,10 +742,12 @@ def step_impl_voting_government_rejected(context):
     Raises:
         AssertionError: If government was not rejected.
     """
-    assert context.vote_result == False, f"Government should be rejected, but was approved. Ja: {context.ja_votes}, Nein: {context.nein_votes}"
+    assert (
+        context.vote_result == False
+    ), f"Government should be rejected, but was approved. Ja: {context.ja_votes}, Nein: {context.nein_votes}"
 
 
-@then('el gobierno es {resultado}')
+@then("el gobierno es {resultado}")
 def step_impl_voting_government_result(context, resultado):
     """Verify government result matches expected.
 
@@ -718,12 +759,16 @@ def step_impl_voting_government_result(context, resultado):
         AssertionError: If result doesn't match expected.
     """
     if resultado == "aprobado":
-        assert context.vote_result == True, f"Government should be approved, but was rejected"
+        assert (
+            context.vote_result == True
+        ), f"Government should be approved, but was rejected"
     else:
-        assert context.vote_result == False, f"Government should be rejected, but was approved"
+        assert (
+            context.vote_result == False
+        ), f"Government should be rejected, but was approved"
 
 
-@then('el jugador {player_id:d} se convierte en presidente oficial')
+@then("el jugador {player_id:d} se convierte en presidente oficial")
 def step_impl_voting_official_president(context, player_id):
     """Verify player becomes official president.
 
@@ -737,7 +782,7 @@ def step_impl_voting_official_president(context, player_id):
     assert context.game.state.president == context.players[player_id - 1]
 
 
-@then('el jugador {player_id:d} se convierte en canciller oficial')
+@then("el jugador {player_id:d} se convierte en canciller oficial")
 def step_impl_voting_official_chancellor(context, player_id):
     """Verify player becomes official chancellor.
 
@@ -751,7 +796,7 @@ def step_impl_voting_official_chancellor(context, player_id):
     assert context.game.state.chancellor == context.players[player_id - 1]
 
 
-@then('el tracker de elecciones fallidas se reinicia a 0')
+@then("el tracker de elecciones fallidas se reinicia a 0")
 def step_impl_voting_tracker_reset(context):
     """Verify election tracker is reset to 0.
 
@@ -764,7 +809,7 @@ def step_impl_voting_tracker_reset(context):
     assert context.game.state.election_tracker == 0
 
 
-@then('la partida avanza a la fase legislativa')
+@then("la partida avanza a la fase legislativa")
 def step_impl_voting_legislative_phase(context):
     """Verify game advances to legislative phase.
 
@@ -777,7 +822,7 @@ def step_impl_voting_legislative_phase(context):
     assert isinstance(context.next_phase, LegislativePhase)
 
 
-@then('el tracker de elecciones fallidas se incrementa en {increment:d}')
+@then("el tracker de elecciones fallidas se incrementa en {increment:d}")
 def step_impl_voting_tracker_increment(context, increment):
     """Verify election tracker increments.
 
@@ -788,7 +833,7 @@ def step_impl_voting_tracker_increment(context, increment):
     pass
 
 
-@then('el siguiente jugador se convierte en candidato a presidente')
+@then("el siguiente jugador se convierte en candidato a presidente")
 def step_impl_voting_next_president_candidate(context):
     """Verify next player becomes president candidate.
 
@@ -801,7 +846,7 @@ def step_impl_voting_next_president_candidate(context):
     context.game.set_next_president.assert_called_once()
 
 
-@then('la partida permanece en la fase de elección')
+@then("la partida permanece en la fase de elección")
 def step_impl_voting_stays_election_phase(context):
     """Verify game stays in election phase.
 
@@ -814,7 +859,7 @@ def step_impl_voting_stays_election_phase(context):
     assert isinstance(context.next_phase, ElectionPhase)
 
 
-@then('el tracker de elecciones fallidas llega a {value:d}')
+@then("el tracker de elecciones fallidas llega a {value:d}")
 def step_impl_voting_tracker_reaches(context, value):
     """Verify election tracker reaches specific value.
 
@@ -830,7 +875,7 @@ def step_impl_voting_tracker_reaches(context, value):
         context.game.enact_chaos_policy.assert_called_once()
 
 
-@then('se reinician los límites de términos')
+@then("se reinician los límites de términos")
 def step_impl_voting_term_limits_reset(context):
     """Verify term limits are reset.
 
@@ -843,7 +888,7 @@ def step_impl_voting_term_limits_reset(context):
     assert context.game.state.term_limited_players == []
 
 
-@then('los fascistas ganan la partida')
+@then("los fascistas ganan la partida")
 def step_impl_voting_fascist_victory(context):
     """Verify fascists win the game.
 
@@ -856,7 +901,7 @@ def step_impl_voting_fascist_victory(context):
     assert context.game.state.winner == "fascist"
 
 
-@then('el juego termina')
+@then("el juego termina")
 def step_impl_voting_game_over(context):
     """Verify game ends.
 
@@ -869,7 +914,7 @@ def step_impl_voting_game_over(context):
     assert isinstance(context.next_phase, GameOverPhase)
 
 
-@then('el sistema solicita el voto de cada jugador humano')
+@then("el sistema solicita el voto de cada jugador humano")
 def step_impl_voting_request_human_votes(context):
     """Verify system requests votes from human players.
 
@@ -883,7 +928,7 @@ def step_impl_voting_request_human_votes(context):
     assert len(human_players) > 0, "Should have human players to request votes from"
 
 
-@then('los bots votan automáticamente según su estrategia')
+@then("los bots votan automáticamente según su estrategia")
 def step_impl_voting_bots_vote_automatically(context):
     """Verify bots vote automatically.
 
@@ -897,7 +942,7 @@ def step_impl_voting_bots_vote_automatically(context):
     assert len(bot_players) > 0, "Should have bot players that vote automatically"
 
 
-@then('todos los jugadores votan automáticamente según su estrategia')
+@then("todos los jugadores votan automáticamente según su estrategia")
 def step_impl_voting_all_bots_vote(context):
     """Verify all players (bots) vote automatically.
 
@@ -907,7 +952,7 @@ def step_impl_voting_all_bots_vote(context):
     assert all(p.is_bot for p in context.players), "All players should be bots"
 
 
-@then('se procesan los votos inmediatamente')
+@then("se procesan los votos inmediatamente")
 def step_impl_voting_immediate_processing(context):
     """Verify votes are processed immediately.
 
@@ -932,7 +977,9 @@ def step_impl_voting_show_individual_vote(context, player_id, vote):
     Raises:
         AssertionError: If vote doesn't match expected.
     """
-    assert context.votes[player_id] == vote, f"Player {player_id} should have voted {vote}, but voted {context.votes.get(player_id)}"
+    assert (
+        context.votes[player_id] == vote
+    ), f"Player {player_id} should have voted {vote}, but voted {context.votes.get(player_id)}"
 
 
 @then('se muestra el resultado final como "{resultado}"')
@@ -946,7 +993,7 @@ def step_impl_voting_show_final_result(context, resultado):
     context.show_results = True
 
 
-@then('el jugador {player_id:d} es ejecutado antes de la votación')
+@then("el jugador {player_id:d} es ejecutado antes de la votación")
 def step_impl_voting_player_executed_before(context, player_id):
     """Verify player is executed before voting.
 
@@ -962,7 +1009,7 @@ def step_impl_voting_player_executed_before(context, player_id):
     assert executed_player not in context.game.state.active_players
 
 
-@then('el jugador {player_id:d} no participa en la votación')
+@then("el jugador {player_id:d} no participa en la votación")
 def step_impl_voting_player_no_participation(context, player_id):
     """Verify player doesn't participate in voting.
 
@@ -973,10 +1020,12 @@ def step_impl_voting_player_no_participation(context, player_id):
     Raises:
         AssertionError: If player participated in voting.
     """
-    assert player_id not in context.votes, f"Player {player_id} should not participate in voting"
+    assert (
+        player_id not in context.votes
+    ), f"Player {player_id} should not participate in voting"
 
 
-@then('los jugadores restantes proceden a votar')
+@then("los jugadores restantes proceden a votar")
 def step_impl_voting_remaining_players_vote(context):
     """Verify remaining players proceed to vote.
 
@@ -986,23 +1035,32 @@ def step_impl_voting_remaining_players_vote(context):
     Raises:
         AssertionError: If wrong number of players voted.
     """
-    active_alive_players = [p for p in context.game.state.active_players if not p.is_dead]
+    active_alive_players = [
+        p for p in context.game.state.active_players if not p.is_dead
+    ]
     active_count = len(active_alive_players)
 
-    votes_count = len(context.votes) if hasattr(context, 'votes') else 0
+    votes_count = len(context.votes) if hasattr(context, "votes") else 0
 
-    assert votes_count == active_count, f"Expected {active_count} votes from remaining players, got {votes_count}"
+    assert (
+        votes_count == active_count
+    ), f"Expected {active_count} votes from remaining players, got {votes_count}"
 
-    if hasattr(context, 'votes'):
+    if hasattr(context, "votes"):
         for player_id in context.votes.keys():
             player = context.players[player_id - 1]
             assert not player.is_dead, f"Dead player {player_id} should not have a vote"
-            assert player in context.game.state.active_players, f"Inactive player {player_id} should not have a vote"
+            assert (
+                player in context.game.state.active_players
+            ), f"Inactive player {player_id} should not have a vote"
 
     for player in active_alive_players:
-        assert player.id in context.votes, f"Active player {player.id} should have a vote"
+        assert (
+            player.id in context.votes
+        ), f"Active player {player.id} should have a vote"
 
-@then('los jugadores restantes votan de la siguiente manera')
+
+@then("los jugadores restantes votan de la siguiente manera")
 def step_impl_remaining_players_vote_table(context):
     """Set votes from table data for remaining players after execution.
 
@@ -1012,17 +1070,19 @@ def step_impl_remaining_players_vote_table(context):
     Raises:
         AssertionError: If a dead player tries to vote.
     """
-    if not hasattr(context, 'votes'):
+    if not hasattr(context, "votes"):
         context.votes = {}
 
     for row in context.table:
-        player_id = int(row['jugador'])
-        vote = row['voto']
+        player_id = int(row["jugador"])
+        vote = row["voto"]
 
         player = context.players[player_id - 1]
 
         if player.is_dead:
-            raise AssertionError(f"Player {player_id} is dead and should not be able to vote")
+            raise AssertionError(
+                f"Player {player_id} is dead and should not be able to vote"
+            )
 
         if player not in context.game.state.active_players:
             raise AssertionError(f"Player {player_id} is not in active players list")
@@ -1034,7 +1094,9 @@ def step_impl_remaining_players_vote_table(context):
         if player.is_dead:
             raise AssertionError(f"Dead player {player_id} should not have a vote")
 
-    active_alive_players = [p for p in context.game.state.active_players if not p.is_dead]
+    active_alive_players = [
+        p for p in context.game.state.active_players if not p.is_dead
+    ]
     votes_count = len(context.votes)
     expected_count = len(active_alive_players)
 
@@ -1046,14 +1108,15 @@ def step_impl_remaining_players_vote_table(context):
             f"but got {votes_count} votes from players {vote_ids}"
         )
 
+
 def _process_vote_counts(context):
     """Process the vote counts and assign votes to players.
 
     Args:
         context: Behave context object with expected_ja_votes and expected_nein_votes.
     """
-    ja_count = getattr(context, 'expected_ja_votes', 0)
-    nein_count = getattr(context, 'expected_nein_votes', 0)
+    ja_count = getattr(context, "expected_ja_votes", 0)
+    nein_count = getattr(context, "expected_nein_votes", 0)
 
     active_players = context.game.state.active_players
     total_expected = ja_count + nein_count
@@ -1075,7 +1138,7 @@ def _process_vote_counts(context):
             player = active_players[i]
             context.votes[player.id] = "Nein"
 
-    if hasattr(context, 'expected_ja_votes'):
-        delattr(context, 'expected_ja_votes')
-    if hasattr(context, 'expected_nein_votes'):
-        delattr(context, 'expected_nein_votes')
+    if hasattr(context, "expected_ja_votes"):
+        delattr(context, "expected_ja_votes")
+    if hasattr(context, "expected_nein_votes"):
+        delattr(context, "expected_nein_votes")

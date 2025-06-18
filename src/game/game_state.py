@@ -84,7 +84,6 @@ class EnhancedGameState:
         """Get the current month name"""
         return self.month_names.get(self.month_counter, f"Month {self.month_counter}")
 
-
     def set_phase(self, phase_name):
         """Cambiar la fase actual - SIMPLE"""
         self.current_phase_name = phase_name

@@ -6,11 +6,11 @@ import subprocess
 
 def after_scenario(context, scenario):
     """Limpiar recursos después de cada escenario"""
-    if hasattr(context, 'server_process') and context.server_process:
+    if hasattr(context, "server_process") and context.server_process:
         try:
             print("🛑 Deteniendo servidor...")
 
-            is_ci = os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true'
+            is_ci = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
 
             if is_ci:
                 if context.server_process.poll() is None:
@@ -23,11 +23,15 @@ def after_scenario(context, scenario):
             else:
                 if context.server_process.poll() is None:
                     try:
-                        os.killpg(os.getpgid(context.server_process.pid), signal.SIGTERM)
+                        os.killpg(
+                            os.getpgid(context.server_process.pid), signal.SIGTERM
+                        )
                         context.server_process.wait(timeout=5)
                     except (subprocess.TimeoutExpired, ProcessLookupError):
                         try:
-                            os.killpg(os.getpgid(context.server_process.pid), signal.SIGKILL)
+                            os.killpg(
+                                os.getpgid(context.server_process.pid), signal.SIGKILL
+                            )
                         except ProcessLookupError:
                             pass
 
@@ -38,17 +42,19 @@ def after_scenario(context, scenario):
         finally:
             context.server_process = None
 
+
 def before_scenario(context, scenario):
     random.seed(42)
 
+
 def after_all(context):
     """Limpiar al final de todos los tests"""
-    is_ci = os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true'
+    is_ci = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
 
     if not is_ci:
         try:
-            subprocess.run(['pkill', '-f', 'src.api.app'], capture_output=True)
-            subprocess.run(['fuser', '-k', '5000/tcp'], capture_output=True, timeout=3)
+            subprocess.run(["pkill", "-f", "src.api.app"], capture_output=True)
+            subprocess.run(["fuser", "-k", "5000/tcp"], capture_output=True, timeout=3)
         except:
             pass
 

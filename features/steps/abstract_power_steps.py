@@ -20,8 +20,10 @@ from src.game.powers.abstract_power import (
 # DUMMY CLASES PARA MOCKEAR MÍNIMAMENTE
 # —————————————————————————————————————————
 
+
 class DummyRole:
     """Simula el rol de un jugador"""
+
     def __init__(self, party_membership):
         self.party_membership = party_membership
 
@@ -30,6 +32,7 @@ class DummyPlayer:
     """
     Simula un jugador con todos los atributos necesarios
     """
+
     def __init__(self, pid, party, is_hitler=False):
         self.id = pid
         self.role = DummyRole(party)
@@ -47,6 +50,7 @@ class DummyBoard:
     """
     Simula el board con una lista de políticas y método discard
     """
+
     def __init__(self, policies):
         self.policies = list(policies)
         self.discarded = []
@@ -59,6 +63,7 @@ class DummyState:
     """
     Simula el state del juego con todos los atributos necesarios
     """
+
     def __init__(self):
         self.investigated_players = []
         self.special_election = False
@@ -75,6 +80,7 @@ class DummyGame:
     """
     Simula la clase principal de juego
     """
+
     def __init__(self):
         self.state = DummyState()
 
@@ -99,6 +105,7 @@ class MockLiberal:
 # —————————————————————————————————————————
 # STEP DEFINITIONS
 # —————————————————————————————————————————
+
 
 # --------------------------
 # InvestigateLoyalty
@@ -133,7 +140,7 @@ def step_investigate_then_contains_player(context):
 # --------------------------
 # SpecialElection
 # --------------------------
-@given("un \"game\" mock con un presidente actual que tiene id {pid:d}")
+@given('un "game" mock con un presidente actual que tiene id {pid:d}')
 def step_special_election_given_president(context, pid):
     context.game = DummyGame()
     pres = DummyPlayer(pid=pid, party="fascist")
@@ -188,7 +195,9 @@ def step_policy_peek_when_execute(context):
 @then('el resultado PolicyPeek debe ser "{expected_str}"')
 def step_policy_peek_then_result(context, expected_str):
     expected = expected_str.split(",")
-    assert context.resultado == expected, f"Expected {expected}, got {context.resultado}"
+    assert (
+        context.resultado == expected
+    ), f"Expected {expected}, got {context.resultado}"
 
 
 @then("la pila original debe seguir siendo de tamaño {size:d}")
@@ -271,7 +280,9 @@ def step_confession_then_revealed(context, pid, party):
 # --------------------------
 # Bugging
 # --------------------------
-@given('un "game" mock con jugadores comunistas ids "{comm_ids}" y objetivo id {tid:d} con party "{tparty}"')
+@given(
+    'un "game" mock con jugadores comunistas ids "{comm_ids}" y objetivo id {tid:d} con party "{tparty}"'
+)
 def step_bugging_given_players(context, comm_ids, tid, tparty):
     context.game = DummyGame()
 
@@ -311,8 +322,9 @@ def step_bugging_then_known_affiliations(context, tparty):
 @when("ejecuto FiveYearPlan")
 def step_five_year_plan_when_execute(context):
     # Mock the policy classes
-    with patch('src.policies.policy.Communist', MockCommunist), \
-         patch('src.policies.policy.Liberal', MockLiberal):
+    with patch("src.policies.policy.Communist", MockCommunist), patch(
+        "src.policies.policy.Liberal", MockLiberal
+    ):
         power = FiveYearPlan(context.game)
         context.resultado = power.execute()
 
@@ -327,7 +339,9 @@ def step_five_year_plan_then_top_three(context):
     top3 = context.game.state.board.policies[:3]
     expected_types = [MockCommunist, MockCommunist, MockLiberal]
     for i, (actual, expected_type) in enumerate(zip(top3, expected_types)):
-        assert isinstance(actual, expected_type), f"Position {i}: expected {expected_type}, got {type(actual)}"
+        assert isinstance(
+            actual, expected_type
+        ), f"Position {i}: expected {expected_type}, got {type(actual)}"
 
 
 # --------------------------
@@ -367,14 +381,14 @@ def step_congress_then_communists_know(context, expected_str):
 # --------------------------
 # Radicalization
 # --------------------------
-@given("un \"game\" mock con un jugador target id {pid:d} que no es Hitler")
+@given('un "game" mock con un jugador target id {pid:d} que no es Hitler')
 def step_radicalization_given_non_hitler(context, pid):
     context.game = DummyGame()
     context.target = DummyPlayer(pid=pid, party="liberal", is_hitler=False)
     context.game.state.players = [context.target]
 
 
-@given("un \"game\" mock con un jugador target id {pid:d} que es Hitler")
+@given('un "game" mock con un jugador target id {pid:d} que es Hitler')
 def step_radicalization_given_hitler(context, pid):
     context.game = DummyGame()
     context.target = DummyPlayer(pid=pid, party="fascist", is_hitler=True)
@@ -392,7 +406,7 @@ def step_radicalization_when_execute(context):
     mock_communist_role = MagicMock()
     mock_communist_role.return_value.party_membership = "communist"
 
-    with patch('src.policies.policy.Communist', mock_communist_role):
+    with patch("src.policies.policy.Communist", mock_communist_role):
         power = Radicalization(context.game)
         context.resultado = power.execute(context.target)
 
@@ -422,7 +436,7 @@ def step_radicalization_then_party_unchanged(context, party):
 # --------------------------
 @given("el presidente siempre decide descartar en propaganda")
 def step_propaganda_given_president_discards(context):
-    if hasattr(context.game.state, 'president') and context.game.state.president:
+    if hasattr(context.game.state, "president") and context.game.state.president:
         context.game.state.president._propaganda_always_discard = True
     else:
         # Crear presidente si no existe
@@ -446,7 +460,9 @@ def step_propaganda_then_top_card(context, next_top):
 # --------------------------
 # Impeachment
 # --------------------------
-@given('un "game" mock con jugador target id {tid:d} party "{tparty}" y revealer id {rid:d}')
+@given(
+    'un "game" mock con jugador target id {tid:d} party "{tparty}" y revealer id {rid:d}'
+)
 def step_impeachment_given_players(context, tid, tparty, rid):
     context.game = DummyGame()
     context.target = DummyPlayer(pid=tid, party=tparty)
