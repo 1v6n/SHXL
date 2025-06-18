@@ -57,19 +57,15 @@ def handle_presidential_choice(game, policy_indices):
     if len(policy_indices) != 2 or len(policies) != 3:
         return {"success": False, "error": "Must choose exactly 2 policies from 3"}
 
-    # Validar índices
     if not all(0 <= i < 3 for i in policy_indices):
         return {"success": False, "error": "Policy indices must be 0, 1, or 2"}
 
-    # Separar elegidas y descartada
     chosen_policies = [policies[i] for i in policy_indices]
     discarded_policy = [policies[i] for i in range(3) if i not in policy_indices][0]
 
-    # Aplicar decisión
     game.state.board.discard(discarded_policy)
     game.state.chancellor_policies = chosen_policies
 
-    # Limpiar políticas presidenciales
     game.state.presidential_policies = None
 
     return {
@@ -105,12 +101,10 @@ def check_veto_proposal(game):
             "can_veto": False,
         }
 
-    # Para bots: usar su decisión automática
     if getattr(game.state.chancellor, "player_type", "human") == "ai":
         chancellor_proposes = game.chancellor_propose_veto()
     else:
-        # Para humanos: requerir decisión manual
-        chancellor_proposes = None  # Se decidirá en el API
+        chancellor_proposes = None
 
     return {
         "veto_available": True,
@@ -137,12 +131,10 @@ def handle_veto_decision(game, president_accepts_veto):
         }
     """
     if president_accepts_veto:
-        # Presidente acepta veto - descartar políticas
         if hasattr(game.state, "chancellor_policies"):
             game.state.board.discard(game.state.chancellor_policies)
             game.state.chancellor_policies = None
 
-        # Avanzar election tracker
         game.state.election_tracker += 1
 
         return {
@@ -152,7 +144,6 @@ def handle_veto_decision(game, president_accepts_veto):
             "next_phase": "election",
         }
     else:
-        # Presidente rechaza veto - continuar con decisión del canciller
         return {
             "veto_accepted": False,
             "policies_discarded": False,
@@ -196,25 +187,20 @@ def handle_chancellor_choice(game, policy_index):
     if policy_index not in [0, 1]:
         return {"success": False, "error": "Policy index must be 0 or 1"}
 
-    # Separar promulgada y descartada
     enacted_policy = policies[policy_index]
     discarded_policy = policies[1 - policy_index]
 
-    # Descartar política no elegida
     game.state.board.discard(discarded_policy)
 
-    # Promulgar política elegida
     power_granted = game.state.board.enact_policy(
         enacted_policy,
-        False,  # chaos=False
+        False,
         getattr(game, "emergency_powers_in_play", False),
         getattr(game, "anti_policies_in_play", False),
     )
 
-    # Limpiar políticas del canciller
     game.state.chancellor_policies = None
 
-    # Verificar victoria por políticas
     game_over = False
     winner = None
     if game.check_policy_win():
@@ -236,34 +222,193 @@ def handle_chancellor_choice(game, policy_index):
 def execute_presidential_power(
     game, power_type, target_player_id=None, peek_choice=None
 ):
-    """Ejecutar poder presidencial.
-
-    Extraído de: LegislativePhase.execute() - power execution
+    """Ejecutar poder presidencial con lógica separada para humanos y bots.
 
     Args:
         game: Instancia del juego
         power_type: str - tipo de poder a ejecutar
-        target_player_id: int - ID del jugador objetivo (para poderes que lo requieren)
+        target_player_id: int - ID del jugador objetivo (SOLO para humanos)
         peek_choice: any - decisión para peek de políticas
 
     Returns:
-        dict: {
-            "power_executed": str,
-            "target_player": dict or None,
-            "result": any,
-            "game_over": bool,
-            "winner": str or None,
-            "hitler_executed": bool
-        }
+        dict: Resultado de la ejecución del poder
     """
+    try:
+        president = game.state.president
+        if not president:
+            return {"success": False, "error": "No president assigned"}
+
+        president_is_human = getattr(president, "player_type", "human") == "human"
+
+        if not president_is_human:
+            return _execute_power_for_bot(game, power_type)
+
+        else:
+            return _execute_power_for_human(game, power_type, target_player_id)
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": f"Failed to execute power {power_type}: {str(e)}",
+        }
+
+
+def _execute_power_for_bot(game, power_type):
+    """Ejecutar poder para presidente BOT usando lógica automática del juego."""
+    try:
+        result = game.execute_power(power_type)
+
+        if power_type == "execution":
+            hitler_executed = getattr(result, "is_hitler", False) if result else False
+
+            if hitler_executed:
+                game.state.game_over = True
+                if getattr(game, "communists_in_play", False):
+                    game.state.winner = "liberal_and_communist"
+                else:
+                    game.state.winner = "liberal"
+
+                return {
+                    "power_executed": power_type,
+                    "target_player": {
+                        "id": result.id,
+                        "name": getattr(result, "name", f"Player {result.id}"),
+                        "was_hitler": True,
+                    },
+                    "result": {
+                        "player_id": result.id,
+                        "player_name": getattr(result, "name", f"Player {result.id}"),
+                        "was_hitler": True,
+                        "is_alive": False,
+                        "execution_successful": True,
+                    },
+                    "game_over": True,
+                    "winner": game.state.winner,
+                    "hitler_executed": True,
+                    "success": True,
+                }
+            else:
+                return {
+                    "power_executed": power_type,
+                    "target_player": {
+                        "id": result.id,
+                        "name": getattr(result, "name", f"Player {result.id}"),
+                        "was_hitler": False,
+                    },
+                    "result": {
+                        "player_id": result.id,
+                        "player_name": getattr(result, "name", f"Player {result.id}"),
+                        "was_hitler": False,
+                        "is_alive": getattr(result, "is_alive", False),
+                        "execution_successful": True,
+                    },
+                    "game_over": False,
+                    "winner": None,
+                    "hitler_executed": False,
+                    "success": True,
+                }
+
+        elif power_type == "investigation":
+            return {
+                "power_executed": power_type,
+                "target_player": {
+                    "id": result.id if result else None,
+                    "name": getattr(result, "name", "Unknown") if result else "Unknown",
+                    "party": (
+                        getattr(result, "party_membership", "unknown")
+                        if result
+                        else "unknown"
+                    ),
+                },
+                "result": {
+                    "player_id": result.id if result else None,
+                    "player_name": (
+                        getattr(result, "name", "Unknown") if result else "Unknown"
+                    ),
+                    "party_membership": (
+                        getattr(result, "party_membership", "unknown")
+                        if result
+                        else "unknown"
+                    ),
+                },
+                "game_over": False,
+                "winner": None,
+                "hitler_executed": False,
+                "success": True,
+            }
+
+        elif power_type == "special_election":
+            return {
+                "power_executed": power_type,
+                "target_player": {
+                    "id": result.id if result else None,
+                    "name": getattr(result, "name", "Unknown") if result else "Unknown",
+                },
+                "result": {"new_president": result.id if result else None},
+                "game_over": False,
+                "winner": None,
+                "hitler_executed": False,
+                "success": True,
+            }
+
+        elif power_type == "policy_peek":
+            if (
+                hasattr(game.state.board, "policies")
+                and len(game.state.board.policies) < 3
+            ):
+                if hasattr(game.state.board, "reshuffle"):
+                    game.state.board.reshuffle()
+            top_policies = []
+            policy_names = []
+            if (
+                hasattr(game.state.board, "policies")
+                and len(game.state.board.policies) >= 3
+            ):
+                top_policies = game.state.board.policies[:3]
+                policy_names = [
+                    getattr(policy, "type", str(policy)) for policy in top_policies
+                ]
+            return {
+                "power_executed": power_type,
+                "target_player": None,
+                "result": {
+                    "top_policies": policy_names,
+                    "message": "President peeked at top policies",
+                },
+                "game_over": False,
+                "winner": None,
+                "hitler_executed": False,
+                "success": True,
+            }
+
+        else:
+            return {
+                "power_executed": power_type,
+                "target_player": None,
+                "result": {"value": str(result) if result else None},
+                "game_over": False,
+                "winner": None,
+                "hitler_executed": False,
+                "success": True,
+            }
+
+    except Exception as e:
+        return {"success": False, "error": f"Bot power execution failed: {str(e)}"}
+
+
+def _execute_power_for_human(game, power_type, target_player_id):
+    """Ejecutar poder para presidente HUMANO usando target_player_id."""
+
     if power_type == "execution":
         if target_player_id is None:
             return {
                 "success": False,
-                "error": "Execution power requires target_player_id",
+                "error": "Human president must provide target_player_id for execution",
             }
 
-        # Encontrar jugador objetivo
         target_player = None
         for player in game.state.players:
             if player.id == target_player_id:
@@ -273,14 +418,18 @@ def execute_presidential_power(
         if not target_player:
             return {"success": False, "error": "Target player not found"}
 
-        # Ejecutar poder
-        result = game.execute_power(power_type, target_player)
+        if not getattr(target_player, "is_alive", True):
+            return {"success": False, "error": "Target player is already dead"}
 
-        # Verificar si era Hitler
-        hitler_executed = getattr(result, "is_hitler", False) if result else False
+        target_player.is_alive = False
 
-        game_over = False
-        winner = None
+        if (
+            hasattr(game.state, "active_players")
+            and target_player in game.state.active_players
+        ):
+            game.state.active_players.remove(target_player)
+
+        hitler_executed = getattr(target_player, "is_hitler", False)
 
         if hitler_executed:
             game.state.game_over = True
@@ -289,31 +438,168 @@ def execute_presidential_power(
             else:
                 game.state.winner = "liberal"
 
-            game_over = True
-            winner = game.state.winner
+            if hasattr(game, "logger"):
+                game.logger.log_player_death(target_player)
+                if game.communists_in_play:
+                    game.logger.log("Hitler was executed! Liberals and Communists win!")
+                else:
+                    game.logger.log("Hitler was executed! Liberals win!")
+
+            return {
+                "power_executed": power_type,
+                "target_player": {
+                    "id": target_player.id,
+                    "name": getattr(
+                        target_player, "name", f"Player {target_player.id}"
+                    ),
+                    "was_hitler": True,
+                },
+                "result": {
+                    "player_id": target_player.id,
+                    "player_name": getattr(
+                        target_player, "name", f"Player {target_player.id}"
+                    ),
+                    "was_hitler": True,
+                    "is_alive": False,
+                    "execution_successful": True,
+                },
+                "game_over": True,
+                "winner": game.state.winner,
+                "hitler_executed": True,
+                "success": True,
+            }
+        else:
+            if hasattr(game, "logger"):
+                game.logger.log_player_death(target_player)
+
+            return {
+                "power_executed": power_type,
+                "target_player": {
+                    "id": target_player.id,
+                    "name": getattr(
+                        target_player, "name", f"Player {target_player.id}"
+                    ),
+                    "was_hitler": False,
+                },
+                "result": {
+                    "player_id": target_player.id,
+                    "player_name": getattr(
+                        target_player, "name", f"Player {target_player.id}"
+                    ),
+                    "was_hitler": False,
+                    "is_alive": False,
+                    "execution_successful": True,
+                },
+                "game_over": False,
+                "winner": None,
+                "hitler_executed": False,
+                "success": True,
+            }
+
+    elif power_type == "investigation":
+        if target_player_id is None:
+            return {
+                "success": False,
+                "error": "Human president must provide target_player_id for investigation",
+            }
+
+        target_player = None
+        for player in game.state.players:
+            if player.id == target_player_id:
+                target_player = player
+                break
+
+        if not target_player:
+            return {"success": False, "error": "Target player not found"}
+
+        party = getattr(target_player, "party_membership", "liberal")
+
+        if hasattr(game, "logger"):
+            game.logger.log_power_used(
+                power_type, game.state.president, target_player, party
+            )
 
         return {
             "power_executed": power_type,
             "target_player": {
                 "id": target_player.id,
                 "name": getattr(target_player, "name", f"Player {target_player.id}"),
-                "was_hitler": hitler_executed,
+                "party": party,
             },
-            "result": result,
-            "game_over": game_over,
-            "winner": winner,
-            "hitler_executed": hitler_executed,
+            "result": {"party_membership": party},
+            "game_over": False,
+            "winner": None,
+            "hitler_executed": False,
             "success": True,
         }
 
-    elif power_type in ["investigation", "policy_peek", "call_special_election"]:
-        # Otros poderes (implementar según necesidad)
-        result = game.execute_power(power_type, target_player_id)
+    elif power_type == "special_election":
+        if target_player_id is None:
+            return {
+                "success": False,
+                "error": "Human president must provide target_player_id for special election",
+            }
+
+        target_player = None
+        for player in game.state.players:
+            if player.id == target_player_id:
+                target_player = player
+                break
+
+        if not target_player:
+            return {"success": False, "error": "Target player not found"}
+
+        game.state.president = target_player
+        game.state.president_candidate = target_player
+
+        if hasattr(game, "logger"):
+            game.logger.log_power_used(
+                power_type, game.state.president, target_player, target_player
+            )
 
         return {
             "power_executed": power_type,
-            "target_player": {"id": target_player_id} if target_player_id else None,
-            "result": result,
+            "target_player": {
+                "id": target_player.id,
+                "name": getattr(target_player, "name", f"Player {target_player.id}"),
+            },
+            "result": {"new_president": target_player.id},
+            "game_over": False,
+            "winner": None,
+            "hitler_executed": False,
+            "success": True,
+        }
+
+    elif power_type == "policy_peek":
+        top_policies = []
+        policy_names = []
+        if hasattr(game.state.board, "policies") and len(game.state.board.policies) < 3:
+            if hasattr(game.state.board, "reshuffle"):
+                game.state.board.reshuffle()
+
+        if (
+            hasattr(game.state.board, "policies")
+            and len(game.state.board.policies) >= 3
+        ):
+            top_policies = game.state.board.policies[:3]
+            policy_names = [policy.type for policy in top_policies]
+
+        if hasattr(game, "logger"):
+            game.logger.log_power_used(
+                power_type, game.state.president, None, policy_names
+            )
+
+        return {
+            "power_executed": power_type,
+            "target_player": None,
+            "result": {
+                "top_policies": policy_names,
+                "deck_remaining": (
+                    len(game.state.board.policies)
+                    if hasattr(game.state.board, "policies")
+                    else 0
+                ),
+            },
             "game_over": False,
             "winner": None,
             "hitler_executed": False,
@@ -327,14 +613,11 @@ def execute_presidential_power(
 def end_legislative_session(game):
     """Finalizar sesión legislativa y preparar siguiente elección."""
 
-    # Establecer límites de mandato
     set_term_limits(game)
 
-    # Capturar estado antes de rotación
     current_president = game.state.president
     current_president_id = current_president.id if current_president else None
 
-    # Guardar gobierno anterior
     previous_government = None
     if (
         hasattr(game.state, "president")
@@ -362,12 +645,10 @@ def end_legislative_session(game):
             "chancellor": game.state.chancellor.id,
         }
 
-    # 🔧 FIX: ROTACIÓN MANUAL ROBUSTA
     next_president = None
     if current_president and hasattr(game.state, "active_players"):
         active_players = game.state.active_players
 
-        # Encontrar índice del presidente actual
         try:
             current_index = active_players.index(current_president)
             next_index = (current_index + 1) % len(active_players)
@@ -377,17 +658,14 @@ def end_legislative_session(game):
             print(
                 f"ERROR: Current president {current_president_id} not found in active_players"
             )
-            # Fallback: usar primer jugador activo
             if active_players:
                 next_president = active_players[0]
                 print(f"FALLBACK: Using first active player: {next_president.id}")
 
-    # 🔧 ESTABLECER NUEVO PRESIDENTE MANUALMENTE
     if next_president:
         game.state.president = next_president
         game.state.president_candidate = next_president
 
-        # Incrementar round number
         if hasattr(game.state, "round_number"):
             game.state.round_number += 1
 
@@ -407,7 +685,6 @@ def end_legislative_session(game):
             f"SUCCESS: President rotated from {current_president_id} to {final_president_id}"
         )
 
-    # Limpiar posiciones de gobierno
     game.state.chancellor = None
     game.state.chancellor_candidate = None
     game.state.current_phase_name = "election"
@@ -439,11 +716,9 @@ def set_term_limits(game):
     last_chancellor_served = game.state.chancellor
 
     if len(game.state.active_players) > 5:
-        # En juegos con más de 5 jugadores, solo el canciller tiene límite de mandato
         if last_chancellor_served:
             game.state.term_limited_players.append(last_chancellor_served)
     else:
-        # En juegos con 5 o menos jugadores, ambos tienen límite de mandato
         if last_chancellor_served:
             game.state.term_limited_players.append(last_chancellor_served)
         if last_president_served and last_president_served != last_chancellor_served:
@@ -458,11 +733,9 @@ def run_full_legislative_cycle(game):
     Returns:
         dict: Resultado completo de la fase legislativa (SOLO DICCIONARIOS SERIALIZABLES)
     """
-    # 1. Dibujar políticas presidenciales
     presidential_draw = draw_presidential_policies(game)
     game.state.presidential_policies = presidential_draw["policies"]
 
-    # 2. Decisión presidencial automática (si es bot)
     if getattr(game.state.president, "player_type", "human") == "ai":
         chosen, discarded = game.presidential_policy_choice(
             presidential_draw["policies"]
@@ -486,10 +759,8 @@ def run_full_legislative_cycle(game):
             "next_step": "presidential_choice",
         }
 
-    # 3. Verificar veto
     veto_check = check_veto_proposal(game)
     if veto_check["veto_available"] and veto_check["chancellor_proposes"]:
-        # Decisión presidencial sobre veto (automática si es bot)
         if getattr(game.state.president, "player_type", "human") == "ai":
             president_accepts = game.president_veto_accepted()
             veto_result = handle_veto_decision(game, president_accepts)
@@ -508,7 +779,6 @@ def run_full_legislative_cycle(game):
                 "next_step": "veto_decision",
             }
 
-    # 4. Decisión del canciller automática (si es bot)
     if getattr(game.state.chancellor, "player_type", "human") == "ai":
         enacted, discarded = game.chancellor_policy_choice(
             game.state.chancellor_policies
@@ -538,7 +808,6 @@ def run_full_legislative_cycle(game):
             "next_step": "chancellor_choice",
         }
 
-    # 5. Verificar victoria
     if game.check_policy_win():
         return {
             "phase": "policy_win",
@@ -547,7 +816,6 @@ def run_full_legislative_cycle(game):
             "next_phase": "game_over",
         }
 
-    # 6. Ejecutar poder si se otorgó
     power_result = None
     if power_granted:
         if getattr(game.state.president, "player_type", "human") == "ai":
@@ -582,7 +850,6 @@ def run_full_legislative_cycle(game):
                 "next_step": "executive_power",
             }
 
-    # 7. Finalizar sesión legislativa
     session_end = end_legislative_session(game)
 
     return {
