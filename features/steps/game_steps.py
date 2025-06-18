@@ -113,20 +113,20 @@ def step_then_president_candidate(context, expected_player):
 # ------------------------------------------------------
 @given("current_phase execute returns itself once then sets game_over true")
 def step_given_current_phase_execute(context):
-    phase_mock = Mock(name="PhaseMock")
+    context.game.state.game_over = False
+    context.game.state.winner = "fascist"
 
-    def execute_side_effect():
-        if not hasattr(phase_mock, "called"):
-            phase_mock.called = True
-            return phase_mock
-        else:
-            context.game.state.game_over = True
-            return phase_mock
+    phase_mock = Mock()
+    phase_mock.execute = Mock(return_value=phase_mock)
 
-    phase_mock.execute.side_effect = execute_side_effect
+    original_start_game = context.game.start_game
+    def mock_start_game():
+        phase_mock.execute()
+        context.game.state.game_over = True
+        return "fascist"
+
+    context.game.start_game = mock_start_game
     context.phase_mock = phase_mock
-    context.game.current_phase = phase_mock
-
 
 @given('state.winner is "{winner}"')
 def step_given_state_winner(context, winner):
@@ -630,6 +630,9 @@ def step_given_active_players_votes(context, votes):
 
     context.game.state.active_players = mock_players
     context.expected_votes = vote_list
+
+    context.game.state.president_candidate = mock_players[0]
+    context.game.state.chancellor_candidate = mock_players[1] if len(mock_players) > 1 else mock_players[0]
 
 
 @when("llamo a vote_on_government")

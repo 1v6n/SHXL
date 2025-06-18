@@ -20,9 +20,9 @@ Feature: Gestión del flujo de juego en SHXLGame
 
   Scenario: iniciar_juego ejecuta fases hasta game_over y devuelve el ganador
     Given current_phase execute returns itself once then sets game_over true
-    And state.winner is "Fascists"
+    And state.winner is "fascist"
     When inicio el juego
-    Then el ganador retornado debe ser "Fascists"
+    Then el ganador retornado debe ser "fascist"
     And execute fue llamado al menos una vez sobre el objeto de fase
 
   Scenario: setup_game desactiva anti_policies si no hay comunistas y llama a los submétodos

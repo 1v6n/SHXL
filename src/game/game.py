@@ -754,6 +754,10 @@ class SHXLGame:
 
         # Execute based on type
 
+        if power_name in ["chancellor_propaganda", "chancellor_policy_peek"]:
+            power_result = power.execute()
+            return power_result
+
         if power_name in ["propaganda", "policy_peek_emergency"]:
 
             # View cards
@@ -1025,8 +1029,7 @@ class SHXLGame:
 
         # Additional detailed logging if needed
 
-        if power_target or power_result:
-
+        if power_target and power_result:
             self.logger.log_power_used(
                 power_name, self.state.chancellor, power_target, power_result
             )
