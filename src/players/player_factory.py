@@ -29,11 +29,15 @@ class PlayerFactory:
         Returns:
             Player: The created player
         """
-        if player_type == "human":
-            return HumanPlayer(id, name, role, state)
+        if player_type in ["ai", "bot"]:
+            player_type = "ai"
+            player = AIPlayer(id, name, role, state)
+            player.strategy_type = strategy_type
+        else:
+            player_type = "human"
+            player = HumanPlayer(id, name, role, state)
 
-        # Create AI player
-        player = AIPlayer(id, name, role, state)
+        player.player_type = player_type
 
         return player
 

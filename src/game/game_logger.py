@@ -701,12 +701,14 @@ class GameLogger:
 
         self.logger.info("\nFascist team:")
 
-        self.logger.info(
-            "%s - Hitler: %s",
-            hitler.name,
-            "Dead" if hitler.is_dead else "Alive",
-        )
-
+        if hitler:
+            self.logger.info(
+                "%s - Hitler: %s",
+                hitler.name,
+                "Dead" if hitler.is_dead else "Alive",
+            )
+        else:
+            self.logger.info("Hitler: Not found/assigned")
         for player in fascists:
 
             status = "Dead" if player.is_dead else "Alive"
@@ -731,7 +733,7 @@ class GameLogger:
 
         if game.state.winner == "liberal":
 
-            if hitler.is_dead:
+            if hitler and hitler.is_dead:
 
                 self.logger.info("Hitler was executed!")
 

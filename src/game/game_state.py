@@ -9,6 +9,7 @@ class EnhancedGameState:
         self.game_over = False
         self.winner = None
         self.round_number = 0
+        self.current_phase_name = "setup"  # Fase actual como string simple
 
         # Players
         self.players = []  # All players
@@ -82,6 +83,10 @@ class EnhancedGameState:
     def get_current_month_name(self):
         """Get the current month name"""
         return self.month_names.get(self.month_counter, f"Month {self.month_counter}")
+
+    def set_phase(self, phase_name):
+        """Cambiar la fase actual - SIMPLE"""
+        self.current_phase_name = phase_name
 
     def get_month_name(self, month_number):
         """Get the name of a specific month"""
