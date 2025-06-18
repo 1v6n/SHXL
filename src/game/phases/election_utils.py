@@ -1,21 +1,25 @@
-"""Utilidades separadas para manejar elecciones de forma granular."""
+"""Utilidades separadas para manejar elecciones de forma granular.
 
-from src.game.phases.gameover import GameOverPhase
-from src.game.phases.legislative import LegislativePhase
+Este módulo extrae funciones específicas de ElectionPhase para permitir
+control granular desde el API sin duplicar lógica electoral.
+"""
 
 
 def check_marked_for_execution(game):
-    """Verificar y ejecutar jugadores marcados para ejecución.
+    """Verifica y ejecuta jugadores marcados para ejecución.
 
-    Basado en ElectionPhase._check_marked_for_execution()
+    Verifica si un jugador marcado para ejecución debe ser eliminado basándose en
+    el número de políticas fascistas promulgadas desde que fue marcado.
+
+    Args:
+        game: Instancia del juego.
 
     Returns:
-        dict: {
-            "executed": bool,
-            "player": Player or None,
-            "game_over": bool,
-            "winner": str or None
-        }
+        dict: Resultado de la verificación de ejecución.
+            - executed: Boolean indicando si se ejecutó un jugador.
+            - player: Jugador ejecutado o None.
+            - game_over: Boolean indicando si el juego terminó.
+            - winner: String con ganador o None.
     """
     result = {"executed": False, "player": None, "game_over": False, "winner": None}
 
@@ -33,19 +37,16 @@ def check_marked_for_execution(game):
         if fascist_policies_enacted >= 3:
             player = game.state.marked_for_execution
 
-            # Ejecutar jugador
             player.is_dead = True
             if player in game.state.active_players:
                 game.state.active_players.remove(player)
 
-            # Limpiar marcado
             game.state.marked_for_execution = None
             game.state.marked_for_execution_tracker = None
 
             result["executed"] = True
             result["player"] = player
 
-            # Verificar si era Hitler
             if getattr(player, "is_hitler", False):
                 if getattr(game, "communists_in_play", False):
                     game.state.winner = "liberal_and_communist"
@@ -60,17 +61,18 @@ def check_marked_for_execution(game):
 
 
 def nominate_chancellor_safe(game):
-    """Nominar canciller de forma segura.
+    """Nomina un canciller de forma segura.
 
-    Basado en ElectionPhase.execute() nomination logic
+    Maneja la nominación del canciller incluyendo casos especiales donde
+    no hay candidatos elegibles, lo que desencadena una política de caos.
 
-    Returns:
-        dict: {
-            "nominee": Player or None,
-            "chaos_triggered": bool,
-            "game_over": bool,
-            "winner": str or None
-        }
+    Args:
+        game: Instancia del juego.    Returns:
+        dict: Resultado de la nominación.
+            - nominee: Jugador nominado o None.
+            - chaos_triggered: Boolean indicando si se activó política de caos.
+            - game_over: Boolean indicando si el juego terminó.
+            - winner: String con ganador o None.
     """
     result = {
         "nominee": None,
@@ -79,25 +81,20 @@ def nominate_chancellor_safe(game):
         "winner": None,
     }
 
-    # Intentar nominación
     nominee = game.nominate_chancellor()
 
     if nominee is None:
-        # No hay candidatos elegibles - chaos policy
         game.enact_chaos_policy()
         game.state.election_tracker = 0
         result["chaos_triggered"] = True
 
-        # Verificar victoria después de chaos
         if game.check_policy_win():
             result["game_over"] = True
             result["winner"] = getattr(game.state, "winner", "unknown")
         else:
-            # Reset term limits y avanzar presidente
             game.state.term_limited_players = []
             advance_to_next_president(game)
     else:
-        # Nominación exitosa
         game.state.chancellor_candidate = nominee
         result["nominee"] = nominee
 
@@ -105,25 +102,25 @@ def nominate_chancellor_safe(game):
 
 
 def resolve_election(game, votes_dict):
-    """Resolver elección con votos dados.
+    """Resuelve la elección con votos dados.
 
-    Basado en ElectionPhase.execute() vote resolution logic
+    Procesa los votos de todos los jugadores y determina si la elección
+    fue exitosa o fallida, manejando las consecuencias correspondientes.
 
     Args:
-        game: Instancia del juego
-        votes_dict: {player_id: bool} - votos de cada jugador
+        game: Instancia del juego.
+        votes_dict (dict): Diccionario con votos {player_id: bool}.
 
     Returns:
-        dict: {
-            "passed": bool,
-            "ja_votes": int,
-            "nein_votes": int,
-            "total_votes": int,
-            "government_installed": bool,
-            "game_over": bool,
-            "winner": str or None,
-            "next_phase": str
-        }
+        dict: Resultado de la resolución electoral.
+            - passed: Boolean indicando si la elección pasó.
+            - ja_votes: Número entero de votos a favor.
+            - nein_votes: Número entero de votos en contra.
+            - total_votes: Número total de votos.
+            - government_installed: Boolean indicando si se instaló el gobierno.
+            - game_over: Boolean indicando si el juego terminó.
+            - winner: String con ganador o None.
+            - next_phase: String con nombre de la siguiente fase.
     """
     # Transferir votos al sistema del backend
     game.state.last_votes = [

@@ -1,20 +1,21 @@
-"""
-Game state helper functions extracted from original app.py
+"""Funciones auxiliares para el estado del juego extraídas de app.py original.
+
+Este módulo contiene utilidades para extraer y formatear información del estado
+del juego, incluyendo configuración, jugadores, gobierno, tablero y fases.
 """
 
 import datetime
 
 
 def _get_power_description(power_name):
-    """
-    Returns a human-readable description for a given power name.
+    """Obtiene una descripción legible de un poder dado su nombre.
 
     Args:
-        power_name (str): The key representing the name of the power.
+        power_name (str): Nombre clave que representa el poder.
 
     Returns:
-        str: A description of the specified power. If the power name is not found,
-             returns a default message indicating execution of the given power.
+        str: Descripción del poder especificado. Si no se encuentra el nombre,
+            retorna un mensaje por defecto indicando ejecución del poder dado.
     """
     power_descriptions = {
         "investigate_loyalty": "Investigate a player's loyalty",
@@ -33,16 +34,19 @@ def _get_power_description(power_name):
 
 
 def _get_current_phase_name(game):
-    """
-    Returns the name of the current phase of the game.
-    This function attempts to determine the current phase name by checking several possible sources in order:
-    1. If `game.state` has a non-empty `current_phase_name` attribute, it is returned.
-    2. If `game` has a non-empty `current_phase` attribute, its class name (with 'Phase' removed and lowercased) is used as the phase name. This value is also set to `game.state.current_phase_name` if possible.
-    3. If neither of the above is available, the phase name is inferred using `_infer_phase_from_game_state(game)`.
+    """Obtiene el nombre de la fase actual del juego.
+
+    Esta función intenta determinar el nombre de la fase actual verificando
+    varias fuentes posibles en orden:
+    1. Si game.state tiene un atributo current_phase_name no vacío, se retorna.
+    2. Si game tiene un atributo current_phase no vacío, se usa su nombre de clase.
+    3. Si ninguno está disponible, se infiere usando _infer_phase_from_game_state.
+
     Args:
-        game: The game object containing state and phase information.
+        game: Objeto del juego que contiene estado e información de fase.
+
     Returns:
-        str: The name of the current phase.
+        str: Nombre de la fase actual.
     """
 
     if hasattr(game.state, "current_phase_name") and game.state.current_phase_name:
@@ -60,20 +64,19 @@ def _get_current_phase_name(game):
 
 
 def _infer_phase_from_game_state(game):
-    """
-    Infers the current phase of the game based on the attributes of the game state.
+    """Infiere la fase actual del juego basándose en los atributos del estado.
 
-    Parameters:
-        game: An object representing the current game, expected to have a 'state' attribute
-              with various properties indicating the game's progress.
+    Args:
+        game: Objeto que representa el juego actual, se espera que tenga un
+            atributo 'state' con varias propiedades que indican el progreso.
 
     Returns:
-        str: A string representing the inferred phase of the game. Possible values are:
-            - "game_over": The game has ended.
-            - "voting": The game is in the voting phase for a chancellor candidate.
-            - "legislative": Both president and chancellor are set, indicating the legislative phase.
-            - "election": Only the president is set, indicating the election phase.
-            - "setup": The game is in the setup phase or no other phase matches.
+        str: String que representa la fase inferida del juego. Valores posibles:
+            - "game_over": El juego ha terminado.
+            - "voting": El juego está en fase de votación para candidato a canciller.
+            - "legislative": Presidente y canciller están establecidos, fase legislativa.
+            - "election": Solo el presidente está establecido, fase de elección.
+            - "setup": El juego está en configuración o ninguna otra fase coincide.
     """
     if hasattr(game.state, "game_over") and game.state.game_over:
         return "game_over"
@@ -95,18 +98,22 @@ def _infer_phase_from_game_state(game):
 
 
 def _get_eligible_voters(game):
-    """
-    Returns a list of eligible voters from the current game state.
-    Each eligible voter is represented as a dictionary containing:
-        - "id": The player's unique identifier.
-        - "name": The player's name (defaults to 'Player {id}' if not set).
-        - "hasVoted": Boolean indicating if the player has already voted.
-        - "vote": Always set to None to avoid revealing votes before the end.
-    A player is considered eligible if their 'is_alive' attribute is True (or defaults to True if not present).
+    """Obtiene una lista de votantes elegibles del estado actual del juego.
+
+    Cada votante elegible se representa como un diccionario que contiene:
+    - "id": Identificador único del jugador.
+    - "name": Nombre del jugador (por defecto 'Player {id}' si no está establecido).
+    - "hasVoted": Boolean indicando si el jugador ya ha votado.
+    - "vote": Siempre establecido a None para evitar revelar votos antes del final.
+
+    Un jugador se considera elegible si su atributo 'is_alive' es True
+    (o por defecto True si no está presente).
+
     Args:
-        game: The game object containing the current state and players.
+        game: Objeto del juego que contiene el estado actual y jugadores.
+
     Returns:
-        List[dict]: A list of dictionaries, each representing an eligible voter.
+        List[dict]: Lista de diccionarios, cada uno representando un votante elegible.
     """
     eligible_voters = []
 
@@ -127,19 +134,19 @@ def _get_eligible_voters(game):
 
 
 def _get_game_config_info(game):
-    """
-    Retrieve the configuration settings of a game object.
+    """Obtiene la configuración del objeto juego.
 
     Args:
-        game: An object representing the game, expected to have configuration attributes.
+        game: Objeto que representa el juego, se espera que tenga atributos
+            de configuración.
 
     Returns:
-        dict: A dictionary containing the following game configuration options:
-            - maxPlayers (int): Maximum number of players (default: 10).
-            - withCommunists (bool): Whether communists are included (default: False).
-            - withAntiPolicies (bool): Whether anti-policies are enabled (default: False).
-            - withEmergencyPowers (bool): Whether emergency powers are enabled (default: False).
-            - aiStrategy (str): The AI strategy to use (default: 'smart').
+        dict: Diccionario que contiene las siguientes opciones de configuración:
+            - maxPlayers (int): Número máximo de jugadores (por defecto: 10).
+            - withCommunists (bool): Si se incluyen comunistas (por defecto: False).
+            - withAntiPolicies (bool): Si están habilitadas anti-políticas (por defecto: False).
+            - withEmergencyPowers (bool): Si están habilitados poderes de emergencia (por defecto: False).
+            - aiStrategy (str): Estrategia de IA a usar (por defecto: 'smart').
     """
     return {
         "maxPlayers": getattr(game, "player_count", 10),
@@ -151,17 +158,20 @@ def _get_game_config_info(game):
 
 
 def _can_see_role(game, player, requesting_player_id):
-    """
-    Determines if the role of a player can be viewed by the requesting player according to game rules.
+    """Determina si el rol de un jugador puede ser visto por el jugador solicitante.
+
     Args:
-        game: The current game instance containing the state and rules.
-        player: The player whose role visibility is being checked.
-        requesting_player_id: The ID of the player requesting to see the role, or None.
+        game: Instancia actual del juego que contiene el estado y reglas.
+        player: Jugador cuya visibilidad de rol se está verificando.
+        requesting_player_id: ID del jugador que solicita ver el rol, o None.
+
     Returns:
-        bool: True if the requesting player can see the role, False otherwise.
-    Rules:
-        - A player can always see their own role.
-        - All roles become visible when the game is over.
+        bool: True si el jugador solicitante puede ver el rol, False en caso contrario.
+
+    Note:
+        Reglas:
+        - Un jugador siempre puede ver su propio rol.
+        - Todos los roles se vuelven visibles cuando el juego termina.
     """
     if requesting_player_id is not None and player.id == requesting_player_id:
         return True
@@ -173,17 +183,19 @@ def _can_see_role(game, player, requesting_player_id):
 
 
 def _get_player_special_status(game, player):
-    """
-    Returns a list of special status strings for a given player in the current game state.
-    Checks the EnhancedGameState attributes to determine if the player is:
-    - "term_limited": The player is in the list of term-limited players.
-    - "investigated": The player is in the list of investigated players.
-    - "marked_for_execution": The player is marked for execution.
+    """Obtiene una lista de estados especiales para un jugador dado.
+
+    Verifica los atributos de EnhancedGameState para determinar si el jugador está:
+    - "term_limited": El jugador está en la lista de jugadores con límite de términos.
+    - "investigated": El jugador está en la lista de jugadores investigados.
+    - "marked_for_execution": El jugador está marcado para ejecución.
+
     Args:
-        game: The game object containing the current state.
-        player: The player object or identifier to check.
+        game: Objeto del juego que contiene el estado actual.
+        player: Objeto jugador o identificador a verificar.
+
     Returns:
-        list: A list of status strings representing the player's special statuses.
+        list: Lista de strings de estado que representan los estados especiales del jugador.
     """
     status = []
 
@@ -209,19 +221,23 @@ def _get_player_special_status(game, player):
 
 
 def _get_current_timestamp():
-    """
-    Returns the current timestamp as an ISO 8601 formatted string.
+    """Obtiene el timestamp actual como string formateado ISO 8601.
 
     Returns:
-        str: The current date and time in ISO 8601 format.
+        str: Fecha y hora actual en formato ISO 8601.
     """
-    import datetime
-
     return datetime.datetime.now().isoformat()
 
 
 def _get_game_state_status(game):
-    """Determinar el estado actual del juego."""
+    """Determina el estado actual del juego.
+
+    Args:
+        game: Instancia del juego a evaluar.
+
+    Returns:
+        str: Estado del juego, puede ser "game_over", "in_progress" o "waiting_for_players".
+    """
     if hasattr(game.state, "game_over") and game.state.game_over:
         return "game_over"
     elif hasattr(game.state, "president") and game.state.president:
@@ -231,22 +247,25 @@ def _get_game_state_status(game):
 
 
 def _get_current_phase_info(game):
-    """
-    Retrieve information about the current phase of the game.
+    """Obtiene información sobre la fase actual del juego.
+
     Args:
-        game: An object representing the current game state. It is expected to have a 'state' attribute
-              with at least a 'current_phase_name' property, and possibly other phase-specific attributes.
+        game: Objeto que representa el estado actual del juego. Se espera que tenga
+            un atributo 'state' con al menos una propiedad 'current_phase_name',
+            y posiblemente otros atributos específicos de fase.
+
     Returns:
-        dict: A dictionary containing details about the current phase, including:
-            - 'name': The internal name of the phase.
-            - 'displayName': A user-friendly display name for the phase.
-            - 'description': A description of the phase.
-            - 'originalClass': The original class name for the phase.
-            - 'canAdvance': Boolean indicating if the phase can be advanced.
-            - 'subPhase' (optional): The current sub-phase, if applicable (e.g., 'voting', 'nomination', etc.).
-    Notes:
-        The function determines the sub-phase for 'election' and 'legislative' phases based on the presence
-        and state of specific attributes in the game state.
+        dict: Diccionario que contiene detalles sobre la fase actual, incluyendo:
+            - 'name': Nombre interno de la fase.
+            - 'displayName': Nombre de visualización amigable para la fase.
+            - 'description': Descripción de la fase.
+            - 'originalClass': Nombre de clase original para la fase.
+            - 'canAdvance': Boolean indicando si la fase puede avanzar.
+            - 'subPhase' (opcional): Sub-fase actual, si aplica ('voting', 'nomination', etc.).
+
+    Note:
+        La función determina la sub-fase para fases 'election' y 'legislative'
+        basándose en la presencia y estado de atributos específicos en el estado del juego.
     """
 
     phase_name = getattr(game.state, "current_phase_name", "unknown")
@@ -284,15 +303,14 @@ def _get_current_phase_info(game):
 
 
 def _get_phase_display_name(phase_name):
-    """
-    Returns the display name for a given phase.
+    """Obtiene el nombre de visualización para una fase dada.
 
     Args:
-        phase_name (str): The internal name of the phase.
+        phase_name (str): Nombre interno de la fase.
 
     Returns:
-        str: The display name in Spanish for the phase if it exists in the mapping,
-             otherwise returns the title-cased version of the input phase name.
+        str: Nombre de visualización en español para la fase si existe en el mapeo,
+            de lo contrario retorna la versión title-case del nombre de fase de entrada.
     """
     names = {
         "setup": "Configuración",
@@ -304,22 +322,22 @@ def _get_phase_display_name(phase_name):
 
 
 def _get_phase_description(game, phase_name):
-    """
-    Returns a human-readable description for the current phase of the game.
+    """Obtiene una descripción legible para la fase actual del juego.
 
     Args:
-        game: The game object containing the current state.
-        phase_name (str): The name of the current phase.
+        game: Objeto del juego que contiene el estado actual.
+        phase_name (str): Nombre de la fase actual.
 
     Returns:
-        str: A description of the current phase, or a formatted string for unknown phases.
+        str: Descripción de la fase actual, o string formateado para fases desconocidas.
 
-    Phases:
-        - "setup": Returns "Configurando el juego".
-        - "election": Returns "Nominar y votar canciller".
-        - "legislative": Returns "Seleccionar y promulgar políticas".
-        - "game_over": Returns "Juego terminado - Ganador: <winner>".
-        - Any other phase: Returns "Fase: <phase_name>".
+    Note:
+        Fases:
+        - "setup": Retorna "Configurando el juego".
+        - "election": Retorna "Nominar y votar canciller".
+        - "legislative": Retorna "Seleccionar y promulgar políticas".
+        - "game_over": Retorna "Juego terminado - Ganador: <winner>".
+        - Cualquier otra fase: Retorna "Fase: <phase_name>".
     """
     if phase_name == "setup":
         return "Configurando el juego"
@@ -336,7 +354,14 @@ def _get_phase_description(game, phase_name):
 
 
 def _safe_winner_string(winner):
-    """Convert winner to safe string format."""
+    """Convierte ganador a formato de string seguro.
+
+    Args:
+        winner: Objeto ganador en varios formatos posibles.
+
+    Returns:
+        str: Representación string del ganador.
+    """
     if isinstance(winner, dict):
         return winner.get("name", winner.get("party", "unknown"))
     elif isinstance(winner, str):
@@ -352,7 +377,16 @@ def _safe_winner_string(winner):
 
 
 def _get_players_info(game, requesting_player_id=None):
-    """Get player information with proper role visibility - using logger logic"""
+    """Obtiene información de jugadores con visibilidad de rol apropiada.
+
+    Args:
+        game: Instancia del juego.
+        requesting_player_id: ID del jugador que solicita la información (no utilizado).
+
+    Returns:
+        list: Lista de diccionarios con información de cada jugador incluyendo
+            ID, nombre, posición, estado vital, tipo y rol.
+    """
     players_info = []
 
     for player in game.state.players:
@@ -404,21 +438,23 @@ def _get_players_info(game, requesting_player_id=None):
 
 
 def _get_government_info(game):
-    """
-    Retrieve structured information about the current and previous government state in the game.
+    """Obtiene información estructurada sobre el estado del gobierno actual y anterior.
+
     Args:
-        game: An instance of the game containing the current state and player information.
+        game: Instancia del juego que contiene el estado actual e información de jugadores.
+
     Returns:
-        dict: A dictionary with the following keys:
-            - "president": Information about the current president (id and name), or None if not set.
-            - "chancellor": Information about the current chancellor (id and name), or None if not set.
-            - "presidentCandidate": Information about the current president candidate (id and name), or None if not set.
-            - "chancellorCandidate": Information about the current chancellor candidate (id and name), or None if not set.
-            - "previousGovernment": A dictionary with the previous president and chancellor (id and name), or None if not set.
-            - "termLimited": List of players who are currently term-limited.
-    Notes:
-        - Player names are retrieved from the player object if available; otherwise, a default name is generated.
-        - Relies on helper functions such as _get_player_name_by_id and _get_term_limited_players.
+        dict: Diccionario con las siguientes claves:
+            - "president": Información sobre el presidente actual (id y nombre), o None.
+            - "chancellor": Información sobre el canciller actual (id y nombre), o None.
+            - "presidentCandidate": Información sobre candidato a presidente actual, o None.
+            - "chancellorCandidate": Información sobre candidato a canciller actual, o None.
+            - "previousGovernment": Diccionario con presidente y canciller anterior, o None.
+            - "termLimited": Lista de jugadores actualmente con límite de términos.
+
+    Note:
+        Los nombres de jugadores se obtienen del objeto jugador si están disponibles;
+        de lo contrario, se genera un nombre por defecto.
     """
     government = {
         "president": None,
@@ -470,13 +506,15 @@ def _get_government_info(game):
 
 
 def _get_player_name_by_id(game, player_id):
-    """
-    Retrieve the name of a player given their ID.
+    """Obtiene el nombre de un jugador dado su ID.
+
     Args:
-        game: An object containing the game state, which should have a 'players' attribute.
-        player_id: The unique identifier of the player whose name is to be retrieved.
+        game: Objeto que contiene el estado del juego, debe tener atributo 'players'.
+        player_id: Identificador único del jugador cuyo nombre se va a obtener.
+
     Returns:
-        str: The name of the player if found; otherwise, a default string in the format "Player {player_id}".
+        str: Nombre del jugador si se encuentra; de lo contrario, string por defecto
+            en formato "Player {player_id}".
     """
     if not hasattr(game.state, "players") or not game.state.players:
         return f"Player {player_id}"
@@ -489,20 +527,24 @@ def _get_player_name_by_id(game, player_id):
 
 
 def _get_term_limited_players(game):
-    """
-    Obtain a list of players who are restricted from being selected for government roles in the next round.
+    """Obtiene lista de jugadores restringidos de roles gubernamentales en la siguiente ronda.
+
     Args:
-        game: An object representing the current game state. It is expected to have a `state` attribute,
-              which contains information about the previous government and the list of players.
+        game: Objeto que representa el estado actual del juego. Se espera que tenga
+            un atributo 'state' que contiene información sobre el gobierno anterior
+            y la lista de jugadores.
+
     Returns:
-        list of dict: A list of dictionaries, each representing a term-limited player with the following keys:
-            - "id": The player's unique identifier.
-            - "name": The player's name (or a default name if not available).
-            - "reason": The reason for the term limit ("former_chancellor" or "former_president_small_game").
-    Notes:
-        - If there is no previous government, returns an empty list.
-        - The former chancellor is always term-limited.
-        - In games with 5 or fewer players, the former president is also term-limited.
+        list: Lista de diccionarios, cada uno representando un jugador con límite
+            de términos con las siguientes claves:
+            - "id": Identificador único del jugador.
+            - "name": Nombre del jugador (o nombre por defecto si no está disponible).
+            - "reason": Razón del límite ("former_chancellor" o "former_president_small_game").
+
+    Note:
+        - Si no hay gobierno anterior, retorna lista vacía.
+        - El ex-canciller siempre tiene límite de términos.
+        - En juegos con 5 o menos jugadores, el ex-presidente también tiene límite.
     """
     term_limited = []
 
@@ -554,13 +596,15 @@ def _get_term_limited_players(game):
 
 
 def _get_player_by_id(game, player_id):
-    """
-    Retrieve a player object from the game's state by their unique player ID.
+    """Obtiene un objeto jugador del estado del juego por su ID único.
+
     Args:
-        game: An object representing the current game, expected to have a 'state' attribute with a 'players' list.
-        player_id: The unique identifier of the player to retrieve.
+        game: Objeto que representa el juego actual, se espera que tenga un
+            atributo 'state' con una lista 'players'.
+        player_id: Identificador único del jugador a obtener.
+
     Returns:
-        The player object with the matching ID if found; otherwise, None.
+        Player: Objeto jugador con el ID coincidente si se encuentra; de lo contrario, None.
     """
     if not hasattr(game.state, "players") or not game.state.players:
         return None
@@ -573,18 +617,22 @@ def _get_player_by_id(game, player_id):
 
 
 def _get_nomination_info(game):
-    """
-    Retrieve nomination information for the current game state.
-    This function gathers details about the current nomination phase, including the eligible chancellor candidates,
-    the current chancellor candidate (if any), and whether the game is in the voting phase. It uses the enhanced
-    game state method `get_eligible_chancellors()` if available to determine eligible candidates.
+    """Obtiene información de nominación para el estado actual del juego.
+
+    Esta función recopila detalles sobre la fase actual de nominación, incluyendo
+    los candidatos a canciller elegibles, el candidato actual a canciller (si existe),
+    y si el juego está en fase de votación. Usa el método de estado de juego mejorado
+    get_eligible_chancellors() si está disponible para determinar candidatos elegibles.
+
     Args:
-        game: The game instance containing the current state.
+        game: Instancia del juego que contiene el estado actual.
+
     Returns:
-        dict: A dictionary with the following keys:
-            - "chancellorCandidate": Information about the current chancellor candidate (dict or None).
-            - "eligibleChancellors": List of eligible chancellor candidates, each as a dict with 'id', 'name', and 'isTermLimited'.
-            - "isVotingPhase": Boolean indicating if the game is currently in the voting phase.
+        dict: Diccionario con las siguientes claves:
+            - "chancellorCandidate": Información sobre candidato actual a canciller (dict o None).
+            - "eligibleChancellors": Lista de candidatos elegibles a canciller, cada uno
+              como dict con 'id', 'name', e 'isTermLimited'.
+            - "isVotingPhase": Boolean indicando si el juego está actualmente en fase de votación.
     """
     nomination = {
         "chancellorCandidate": None,
@@ -623,18 +671,21 @@ def _get_nomination_info(game):
 
 
 def _get_trackers_info(game):
-    """
-    Extracts tracker information from the given game object.
-    This function inspects the `game.state` object for specific tracker attributes
-    and returns their values in a dictionary. If an attribute is not present,
-    a default value is used.
+    """Extrae información de contadores del objeto juego dado.
+
+    Esta función inspecciona el objeto game.state para atributos específicos
+    de contadores y retorna sus valores en un diccionario. Si un atributo
+    no está presente, se usa un valor por defecto.
+
     Args:
-        game: An object representing the current game state, expected to have a `state` attribute.
+        game: Objeto que representa el estado actual del juego, se espera que
+            tenga un atributo 'state'.
+
     Returns:
-        dict: A dictionary containing the following keys:
-            - "electionTracker": The current value of the election tracker (default: 0).
-            - "roundNumber": The current round number (default: 1).
-            - "enactedPolicies": The list or count of enacted policies, if present.
+        dict: Diccionario que contiene las siguientes claves:
+            - "electionTracker": Valor actual del contador de elecciones (por defecto: 0).
+            - "roundNumber": Número de ronda actual (por defecto: 1).
+            - "enactedPolicies": Lista o conteo de políticas promulgadas, si está presente.
     """
     trackers = {}
 
@@ -655,20 +706,25 @@ def _get_trackers_info(game):
 
 
 def _get_board_info(game):
-    """
-    Retrieve the current state of the game board.
-    This function extracts and returns information about the board's status, including the number of enacted policies for each faction, the number of policy cards in the deck and discard pile, whether the veto power is available, and the available powers for fascist and (optionally) communist factions.
+    """Obtiene el estado actual del tablero del juego.
+
+    Esta función extrae y retorna información sobre el estado del tablero,
+    incluyendo el número de políticas promulgadas para cada facción, el número
+    de cartas de política en el mazo y pila de descarte, si el poder de veto está
+    disponible, y los poderes disponibles para facciones fascista y comunista.
+
     Args:
-        game: The game instance containing the current state and board.
+        game: Instancia del juego que contiene el estado actual y tablero.
+
     Returns:
-        dict: A dictionary with the following keys:
-            - "liberalPolicies" (int): Number of liberal policies enacted.
-            - "fascistPolicies" (int): Number of fascist policies enacted.
-            - "communistPolicies" (int): Number of communist policies enacted.
-            - "policiesInDeck" (int): Number of policy cards remaining in the deck.
-            - "policiesInDiscard" (int): Number of policy cards in the discard pile.
-            - "vetoAvailable" (bool): Whether the veto power is currently available.
-            - "powers" (dict): Information about available powers for fascist and communist factions.
+        dict: Diccionario con las siguientes claves:
+            - "liberalPolicies" (int): Número de políticas liberales promulgadas.
+            - "fascistPolicies" (int): Número de políticas fascistas promulgadas.
+            - "communistPolicies" (int): Número de políticas comunistas promulgadas.
+            - "policiesInDeck" (int): Número de cartas restantes en el mazo.
+            - "policiesInDiscard" (int): Número de cartas en la pila de descarte.
+            - "vetoAvailable" (bool): Si el poder de veto está actualmente disponible.
+            - "powers" (dict): Información sobre poderes disponibles para facciones.
     """
     board_info = {
         "liberalPolicies": 0,
@@ -709,17 +765,20 @@ def _get_board_info(game):
 
 
 def _get_fascist_powers_info(board):
-    """
-    Returns a list of dictionaries containing information about fascist powers on the given board.
-    Each dictionary in the returned list includes:
-        - position (int): The 1-based position of the power on the fascist track.
-        - power (Any): The power at this position.
-        - isActive (bool): Whether the power is currently active, based on the board's fascist track.
-        - description (str): A textual description of the power, or "No power" if none.
+    """Obtiene lista de diccionarios con información sobre poderes fascistas en el tablero.
+
+    Cada diccionario en la lista retornada incluye:
+    - position (int): Posición basada en 1 del poder en la pista fascista.
+    - power (Any): El poder en esta posición.
+    - isActive (bool): Si el poder está actualmente activo, basado en la pista fascista del tablero.
+    - description (str): Descripción textual del poder, o "No power" si no hay.
+
     Args:
-        board (object): The board object, expected to have 'fascist_powers' (iterable) and optionally 'fascist_track' (int).
+        board: Objeto tablero, se espera que tenga 'fascist_powers' (iterable)
+            y opcionalmente 'fascist_track' (int).
+
     Returns:
-        list[dict]: List of fascist power information dictionaries.
+        list[dict]: Lista de diccionarios de información de poderes fascistas.
     """
     powers_info = []
 
@@ -743,17 +802,22 @@ def _get_fascist_powers_info(board):
 
 
 def _get_communist_powers_info(board):
-    """
-    Gathers information about the communist powers present on the given board.
-    Iterates through the `communist_powers` attribute of the board, if it exists, and constructs a list of dictionaries containing details for each power, including its position, name, activation status, and description.
+    """Recopila información sobre los poderes comunistas presentes en el tablero dado.
+
+    Itera a través del atributo 'communist_powers' del tablero, si existe, y construye
+    una lista de diccionarios que contienen detalles para cada poder, incluyendo su
+    posición, nombre, estado de activación y descripción.
+
     Args:
-        board: An object representing the game board, expected to have `communist_powers` (list) and optionally `communist_track` (int) attributes.
+        board: Objeto que representa el tablero del juego, se espera que tenga
+            atributos 'communist_powers' (lista) y opcionalmente 'communist_track' (int).
+
     Returns:
-        list[dict]: A list of dictionaries, each containing:
-            - "position" (int): The 1-based index of the power.
-            - "power" (Any): The power itself.
-            - "isActive" (bool): Whether the power is currently active based on the board's communist track.
-            - "description" (str): A description of the power, or "No power" if not present.
+        list[dict]: Lista de diccionarios, cada uno conteniendo:
+            - "position" (int): Índice basado en 1 del poder.
+            - "power" (Any): El poder en sí.
+            - "isActive" (bool): Si el poder está actualmente activo basado en la pista comunista.
+            - "description" (str): Descripción del poder, o "No power" si no está presente.
     """
     powers_info = []
 
@@ -777,22 +841,26 @@ def _get_communist_powers_info(board):
 
 
 def _get_last_action_info(game):
-    """
-    Infers and returns information about the last significant action in the game based on the current board state.
-    The returned dictionary contains:
-        - type (str): The type of the last action (e.g., 'policy_enacted', 'game_started', 'initialization', 'error').
-        - player (dict or None): Information about the player involved in the last action, including 'id' and 'name', or None if not applicable.
-        - description (str): A human-readable description of the last action.
-        - timestamp (str): The timestamp when the action was inferred.
-    The function attempts to:
-        - Determine if a policy was enacted and by whom, using the previous government or current chancellor as fallback.
-        - Identify the type of policy enacted (fascist, liberal, or communist).
-        - Handle cases where the game has just started or is initializing.
-        - Gracefully handle errors and return an error action if needed.
+    """Infiere y retorna información sobre la última acción significativa en el juego.
+
+    El diccionario retornado contiene:
+    - type (str): Tipo de la última acción ('policy_enacted', 'game_started', 'initialization', 'error').
+    - player (dict o None): Información sobre el jugador involucrado, incluyendo 'id' y 'name'.
+    - description (str): Descripción legible de la última acción.
+    - timestamp (str): Timestamp de cuando se infirió la acción.
+
+    La función intenta:
+    - Determinar si se promulgó una política y por quién, usando el gobierno anterior
+      o canciller actual como respaldo.
+    - Identificar el tipo de política promulgada (fascista, liberal o comunista).
+    - Manejar casos donde el juego acaba de comenzar o se está inicializando.
+    - Manejar errores graciosamente y retornar acción de error si es necesario.
+
     Args:
-        game: The game object containing the current state and board information.
+        game: Objeto del juego que contiene el estado actual e información del tablero.
+
     Returns:
-        dict: A dictionary with details about the last action.
+        dict: Diccionario con detalles sobre la última acción.
     """
     last_action = {"type": None, "player": None, "description": None, "timestamp": None}
 

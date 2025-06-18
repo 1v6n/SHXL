@@ -1,3 +1,9 @@
+"""Jugador controlado por IA para Secret Hitler XL.
+
+Este módulo define la clase AIPlayer que representa un jugador controlado
+por inteligencia artificial con estrategias automatizadas.
+"""
+
 from random import choice
 
 from src.players.abstract_player import Player
@@ -11,13 +17,25 @@ from src.players.strategies import (
 
 
 class AIPlayer(Player):
-    """AI player that uses a strategy to make decisions"""
+    """Jugador controlado por IA que utiliza estrategias para tomar decisiones.
 
-    def __init__(self, id, name, role, state, strategy_type="role"):
-        super().__init__(id, name, role, state)
-        self.peeked_policies = None  # Initialize attribute
+    Extiende la clase Player para proporcionar comportamiento automatizado
+    basado en diferentes estrategias de juego.
+    """
 
-        # Handle string roles for testing purposes
+    def __init__(self, player_id, name, role, state, strategy_type="role"):
+        """Inicializa un jugador IA.
+
+        Args:
+            player_id (int): ID único del jugador.
+            name (str): Nombre del jugador.
+            role: Rol asignado al jugador.
+            state: Estado actual del juego.
+            strategy_type (str): Tipo de estrategia a utilizar.
+        """
+        super().__init__(player_id, name, role, state)
+        self.peeked_policies = None
+
         if isinstance(role, str):
             from src.roles.role import Communist, Fascist, Hitler, Liberal
 
@@ -31,17 +49,15 @@ class AIPlayer(Player):
                 role = Hitler()
             self.role = role
 
-        # No puede determinar estrategia si no hay rol asignado
         if role is None:
-            self.strategy = RandomStrategy(self)  # default temporal
+            self.strategy = RandomStrategy(self)
             return
 
-        # pick strategy
         if strategy_type == "random":
             self.strategy = RandomStrategy(self)
         elif strategy_type == "smart":
             self.strategy = SmartStrategy(self)
-        else:  # "role" or anything else
+        else:
             if self.is_fascist or self.is_hitler:
                 self.strategy = FascistStrategy(self)
             elif self.is_communist:
@@ -50,109 +66,107 @@ class AIPlayer(Player):
                 self.strategy = LiberalStrategy(self)
 
     def nominate_chancellor(self, eligible_players=None):
-        """
-        Choose a chancellor
+        """Nomina un canciller.
+
+        Args:
+            eligible_players (list, optional): Lista de jugadores elegibles.
 
         Returns:
-            player: The nominated chancellor
+            Player: El jugador nominado como canciller.
         """
         if eligible_players is None:
             eligible_players = self.state.get_eligible_chancellors()
         return self.strategy.nominate_chancellor(eligible_players)
 
     def filter_policies(self, policies):
-        """
-        Choose which policies to pass as president
+        """Filtra políticas como presidente.
 
         Args:
-            policies: List of 3 policies
+            policies (list): Lista de 3 políticas.
 
         Returns:
-            tuple: (chosen [2], discarded [1])
+            tuple: (políticas elegidas [2], política descartada [1]).
         """
         return self.strategy.filter_policies(policies)
 
     def choose_policy(self, policies):
-        """
-        Choose which policy to enact as chancellor
+        """Elige qué política promulgar como canciller.
 
         Args:
-            policies: List of 2 policies
+            policies (list): Lista de 2 políticas.
 
         Returns:
-            tuple: (chosen [1], discarded [1])
+            tuple: (política elegida [1], política descartada [1]).
         """
         return self.strategy.choose_policy(policies)
 
     def vote(self):
-        """
-        Vote on a government
+        """Vota sobre un gobierno.
 
         Returns:
-            bool: True for Ja, False for Nein
+            bool: True para Ja, False para Nein.
         """
         return self.strategy.vote(
             self.state.president_candidate, self.state.chancellor_candidate
         )
 
     def veto(self):
-        """
-        Decide whether to veto (as chancellor)
+        """Decide si vetar como canciller.
 
         Returns:
-            bool: True to veto, False otherwise
+            bool: True para vetar, False en caso contrario.
         """
-        # Get policies from game state, simplified here
         policies = self.state.current_policies
         return self.strategy.veto(policies)
 
     def accept_veto(self):
-        """
-        Decide whether to accept veto (as president)
+        """Decide si aceptar el veto como presidente.
 
         Returns:
-            bool: True to accept veto, False otherwise
+            bool: True para aceptar el veto, False en caso contrario.
         """
-        # Get policies from game state, simplified here
         policies = self.state.current_policies
         return self.strategy.accept_veto(policies)
 
     def view_policies(self, policies):
-        """
-        React to seeing policies with Policy Peek
+        """Ve políticas durante el espionaje.
 
         Args:
-            policies: List of policies
+            policies (list): Lista de políticas vistas.
         """
-        # Just remember the policies, no direct action
+        self.peeked_policies = policies
+
+    def policy_peek(self, policies):
+        """Reacciona a ver políticas con espionaje de políticas.
+
+        Args:
+            policies (list): Lista de políticas vistas.
+        """
         self.peeked_policies = policies
 
     def kill(self):
-        """
-        Choose a player to execute
+        """Elige un jugador para ejecutar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para ejecutar.
         """
         eligible_players = [p for p in self.state.active_players if p != self]
         return self.strategy.choose_player_to_kill(eligible_players)
 
     def choose_player_to_mark(self):
-        """
-        Choose a player to mark for execution
+        """Elige un jugador para marcar para ejecución.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para marcar.
         """
         eligible_players = [p for p in self.state.active_players if p != self]
         return self.strategy.choose_player_to_mark(eligible_players)
 
     def inspect_player(self):
-        """
-        Choose a player to inspect
+        """Elige un jugador para inspeccionar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para inspeccionar.
         """
         uninspected = [
             p
@@ -160,7 +174,6 @@ class AIPlayer(Player):
             if p != self and p.id not in self.inspected_players
         ]
 
-        # If all players have been inspected, can inspect any player
         eligible_players = (
             uninspected
             if uninspected
@@ -169,39 +182,34 @@ class AIPlayer(Player):
         return self.strategy.choose_player_to_inspect(eligible_players)
 
     def choose_next(self):
-        """
-        Choose the next president (special election)
+        """Elige el próximo presidente en elección especial.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido como próximo presidente.
         """
         eligible_players = [p for p in self.state.active_players if p != self]
         return self.strategy.choose_next_president(eligible_players)
 
     def choose_player_to_radicalize(self):
-        """
-        Choose a player to convert to communist
+        """Elige un jugador para convertir al comunismo.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para radicalizar.
         """
-        # Cannot radicalize Hitler or self
         eligible_players = [
             p for p in self.state.active_players if p != self and not p.is_hitler
         ]
         return self.strategy.choose_player_to_radicalize(eligible_players)
 
     def propaganda_decision(self, policy):
-        """
-        Decide whether to discard the top policy
+        """Decide si descartar la política superior.
 
         Args:
-            policy: The top policy
+            policy: La política superior del mazo.
 
         Returns:
-            bool: True to discard, False to keep
+            bool: True para descartar, False para mantener.
         """
-        # Discard based on role
         if self.is_liberal:
             return policy.type == "fascist"
         elif self.is_fascist or self.is_hitler:
@@ -212,11 +220,13 @@ class AIPlayer(Player):
             return False
 
     def choose_revealer(self, eligible_players):
-        """
-        Choose a player to reveal party membership to (Impeachment)
+        """Elige un jugador para revelar afiliación política.
+
+        Args:
+            eligible_players (list): Jugadores elegibles.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para revelar afiliación.
         """
         # Choose a trusted player based on role
         if self.is_liberal:
@@ -230,15 +240,14 @@ class AIPlayer(Player):
             ]
             if liberals:
                 return choice(liberals)
+
         elif self.is_fascist or self.is_hitler:
-            # Choose a fascist if known
             fascists = [
                 p for p in self.state.active_players if p != self and p.is_fascist
             ]
             if fascists:
                 return choice(fascists)
         elif self.is_communist:
-            # Choose a communist if known
             communists = [
                 p
                 for p in self.state.active_players
@@ -247,154 +256,142 @@ class AIPlayer(Player):
             if communists:
                 return choice(communists)
 
-        # Default: choose random player
         eligible_players = [p for p in self.state.active_players if p != self]
         return choice(eligible_players)
 
     def social_democratic_removal_choice(self, state):
-        """
-        Choose which policy track to remove from (Social Democratic)
+        """Elige qué pista de políticas eliminar (Socialdemócrata).
+
+        Args:
+            state: Estado actual del juego.
 
         Returns:
-            str: "fascist" or "communist"
+            str: "fascist" o "communist".
         """
         if (self.is_liberal or self.is_communist) and state.fascist_track > 0:
-            # Liberals and communists want to remove fascist policies
             return "fascist"
         elif (self.is_fascist or self.is_hitler) and state.communist_track > 0:
-            # Fascists want to remove communist policies
             return "communist"
         else:
-            # Default
             return choice(["fascist", "communist"])
 
     def pardon_player(self):
-        """
-        Decide whether to pardon a player marked for execution
+        """Decide si perdonar a un jugador marcado para ejecución.
 
         Returns:
-            bool: True to pardon, False to not pardon
+            bool: True para perdonar, False en caso contrario.
         """
         if not hasattr(self.strategy, "pardon_player"):
-            # Fallback for strategies without pardon implementation
-            # Fascists will pardon Hitler, others are random
             if (
                 (self.is_fascist or self.is_hitler)
                 and self.state.marked_for_execution is not None
                 and self.state.marked_for_execution.is_hitler
             ):
                 return True
-            return False  # Use the strategy's pardon decision
+            return False
         return self.strategy.pardon_player()
 
     def choose_player_to_bug(self, eligible_players):
-        """
-        Choose a player to bug (view party membership)
+        """Elige un jugador para espiar su afiliación política.
+
+        Args:
+            eligible_players (list): Jugadores elegibles para espiar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para espiar.
         """
         return self.strategy.choose_player_to_bug(eligible_players)
 
     def mark_for_execution(self, eligible_players=None):
-        """
-        Choose a player to mark for execution
+        """Elige un jugador para marcar para ejecución.
 
         Args:
-            eligible_players: List of players that can be marked (optional)
+            eligible_players (list, optional): Jugadores que pueden ser marcados.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para marcar.
         """
         if eligible_players is None:
             eligible_players = [p for p in self.state.active_players if p != self]
         return self.strategy.choose_player_to_mark(eligible_players)
 
     def chancellor_veto_proposal(self, policies):
-        """
-        As Chancellor, decide whether to propose a veto when veto power is available
+        """Como canciller, decide si proponer un veto.
 
         Args:
-            policies: List of 2 policies
+            policies (list): Lista de 2 políticas.
 
         Returns:
-            bool: True to propose veto, False to enact a policy
+            bool: True para proponer veto, False para promulgar política.
         """
         if not self.state.veto_available:
             return False
         return self.strategy.chancellor_veto_proposal(policies)
 
     def vote_of_no_confidence(self):
-        """
-        As Chancellor with Enabling Act power, decide whether to enact the discarded policy
+        """Como canciller con poder de Ley Habilitante, decide si promulgar la política descartada.
 
         Returns:
-            bool: True to enact the discarded policy, False to leave it
+            bool: True para promulgar política descartada, False para dejarla.
         """
         return self.strategy.vote_of_no_confidence()
 
     def chancellor_propose_veto(self, policies):
-        """
-        Chancellor proposes a veto when veto power is available
+        """El canciller propone un veto cuando está disponible.
 
         Args:
-            policies: List of 2 policies the Chancellor received
+            policies (list): Lista de 2 políticas que recibió el canciller.
 
         Returns:
-            bool: True to propose a veto, False otherwise
+            bool: True para proponer veto, False en caso contrario.
         """
         if not self.state.veto_available:
             return False
         return self.strategy.chancellor_veto_proposal(policies)
 
     def choose_player_to_mark_for_execution(self):
-        """
-        Choose a player to mark for future execution
+        """Elige un jugador para marcar para ejecución futura.
 
         Returns:
-            player: The player to mark
+            Player: El jugador a marcar.
         """
         eligible_players = [p for p in self.state.active_players if p != self]
         return self.strategy.choose_player_to_mark(eligible_players)
 
     def choose_to_pardon(self):
-        """
-        Choose whether to pardon the player marked for execution
+        """Elige si perdonar al jugador marcado para ejecución.
 
         Returns:
-            bool: True to pardon, False otherwise
+            bool: True para perdonar, False en caso contrario.
         """
         return self.strategy.pardon_player()
 
     def no_confidence_decision(self):
-        """
-        Decide whether to enact the discarded policy (Vote of No Confidence)
+        """Decide si promulgar la política descartada (Voto de No Confianza).
 
         Returns:
-            bool: True to enact, False otherwise
+            bool: True para promulgar, False en caso contrario.
         """
         return self.strategy.vote_of_no_confidence()
 
     def choose_player_to_investigate(self, eligible_players):
-        """
-        Choose a player to investigate their party membership
+        """Elige un jugador para investigar su afiliación política.
 
         Args:
-            eligible_players: List of players that can be investigated
+            eligible_players (list): Jugadores que pueden ser investigados.
 
         Returns:
-            player: The player to investigate
+            Player: El jugador a investigar.
         """
         return self.strategy.choose_player_to_inspect(eligible_players)
 
     def choose_next_president(self, eligible_players):
-        """
-        Choose the next president for a special election
+        """Elige el próximo presidente para elección especial.
 
         Args:
-            eligible_players: List of players that can be chosen as next president
+            eligible_players (list): Jugadores que pueden ser elegidos como próximo presidente.
 
         Returns:
-            player: The player to be the next president
+            Player: El jugador que será el próximo presidente.
         """
         return self.strategy.choose_next_president(eligible_players)

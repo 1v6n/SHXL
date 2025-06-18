@@ -1,4 +1,9 @@
-# filepath: c:\Users\Admin\Documents\MEGA\Facultad\Materias\IngSoft\test\SHXL\src\players\player_factory.py
+"""Fábrica de jugadores para Secret Hitler XL.
+
+Este módulo proporciona funcionalidades para crear diferentes tipos de
+jugadores con estrategias apropiadas según su rol y configuración.
+"""
+
 from src.players.ai_player import AIPlayer
 from src.players.human_player import HumanPlayer
 from src.players.strategies import (
@@ -11,108 +16,102 @@ from src.players.strategies import (
 
 
 class PlayerFactory:
-    """Factory for creating different types of players"""
+    """Fábrica para crear diferentes tipos de jugadores.
+
+    Proporciona métodos estáticos para crear jugadores IA o humanos
+    con las estrategias apropiadas según su rol.
+    """
 
     @staticmethod
-    def create_player(id, name, role, state, strategy_type="smart", player_type="ai"):
-        """
-        Create a player with the specified role and strategy
+    def create_player(
+        player_id, name, role, state, strategy_type="smart", player_type="ai"
+    ):
+        """Crea un jugador con el rol y estrategia especificados.
 
         Args:
-            id (int): Player ID
-            name (str): Player name
-            role: Player role
-            state: Game state
-            strategy_type (str): Type of strategy to use ("random", "role", "smart")
-            player_type (str): Type of player to create ("ai" or "human")
+            player_id (int): ID del jugador.
+            name (str): Nombre del jugador.
+            role: Rol del jugador.
+            state: Estado del juego.
+            strategy_type (str): Tipo de estrategia a usar ("random", "role", "smart").
+            player_type (str): Tipo de jugador a crear ("ai" o "human").
 
         Returns:
-            Player: The created player
+            Player: El jugador creado.
         """
         if player_type in ["ai", "bot"]:
             player_type = "ai"
-            player = AIPlayer(id, name, role, state)
+            player = AIPlayer(player_id, name, role, state)
             player.strategy_type = strategy_type
         else:
             player_type = "human"
-            player = HumanPlayer(id, name, role, state)
+            player = HumanPlayer(player_id, name, role, state)
 
         player.player_type = player_type
-
         return player
 
-    def apply_strategy_to_player(self, player, strategy_type="smart"):
-        """
-        Apply the appropriate strategy to a player based on their role
+    @staticmethod
+    def apply_strategy_to_player(player, strategy_type="smart"):
+        """Aplica la estrategia apropiada a un jugador según su rol.
 
         Args:
-            player: The player to apply the strategy to
-            strategy_type (str): Type of strategy to use ("random", "role", "smart")
+            player: El jugador al que aplicar la estrategia.
+            strategy_type (str): Tipo de estrategia a usar ("random", "role", "smart").
         """
-        # Skip human players
         if not hasattr(player, "strategy"):
             return
 
-        # Apply strategy based on strategy_type
         if strategy_type == "random":
             player.strategy = RandomStrategy(player)
 
         elif strategy_type == "role":
-            # Based on role
             if player.is_fascist or player.is_hitler:
                 player.strategy = FascistStrategy(player)
             elif player.is_communist:
                 player.strategy = CommunistStrategy(player)
-            else:  # Liberal
+            else:
                 player.strategy = LiberalStrategy(player)
 
-        else:  # smart strategy - use the advanced SmartStrategy
+        else:
             player.strategy = SmartStrategy(player)
 
-    def update_player_strategies(self, players, strategy_type="smart"):
-        """
-        Update strategies for all players after roles have been assigned
+    @staticmethod
+    def update_player_strategies(players, strategy_type="smart"):
+        """Actualiza las estrategias para todos los jugadores después de asignar roles.
 
         Args:
-            players: List of players to update strategies for
-            strategy_type: Strategy type to apply
+            players (list): Lista de jugadores para actualizar estrategias.
+            strategy_type (str): Tipo de estrategia a aplicar.
         """
         for player in players:
-            self.apply_strategy_to_player(player, strategy_type)
+            PlayerFactory.apply_strategy_to_player(player, strategy_type)
 
-    def create_players(
-        self, count, state, strategy_type="smart", human_player_indices=None
-    ):
-        """
-        Create a list of players
+    @staticmethod
+    def create_players(count, state, strategy_type="smart", human_player_indices=None):
+        """Crea una lista de jugadores.
 
         Args:
-            count (int): Number of players to create
-            state: Game state
-            strategy_type (str): Type of strategy to use for AI players
-            human_player_indices (list): List of player indices that should be human-controlled
+            count (int): Número de jugadores a crear.
+            state: Estado del juego.
+            strategy_type (str): Tipo de estrategia a usar para jugadores IA.
+            human_player_indices (list): Lista de índices de jugadores que serán controlados por humanos.
 
         Returns:
-            list: List of players
+            list: Lista de jugadores creados.
         """
         if human_player_indices is None:
             human_player_indices = []
 
-        # Create players
         players = []
         for i in range(count):
-            # Determine if this player should be human or AI
             player_type = "human" if i in human_player_indices else "ai"
             name = f"Bot {i}" if player_type == "ai" else f"Player {i}"
-            player = self.create_player(
+            player = PlayerFactory.create_player(
                 i, name, None, state, strategy_type, player_type
             )
             players.append(player)
 
-        # Add players to state
         state.players = players
-
-        # Store the strategy type for later application after roles are assigned
         state.ai_strategy_type = strategy_type
 
         return players

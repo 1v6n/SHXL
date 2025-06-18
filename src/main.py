@@ -1,3 +1,9 @@
+"""Módulo principal para ejecutar el juego Secret Hitler XL.
+
+Este módulo proporciona funcionalidades para configurar y ejecutar partidas del juego
+Secret Hitler XL con diferentes modos de juego y opciones de configuración.
+"""
+
 import argparse
 from random import seed
 
@@ -12,44 +18,29 @@ def run_game(
     with_emergency_powers=False,
     strategy="role",
     human_players=None,
-    logger=None,  # add logger parameter
+    logger=None,
 ):
-    """
-
-    Run a game of Secret Hitler XL with the given parameters
-
-
+    """Ejecuta una partida de Secret Hitler XL con los parámetros dados.
 
     Args:
-
-        players (int): Number of players (6-16)
-
-        with_communists (bool): Whether to include communists
-
-        with_anti_policies (bool): Whether to include anti-policies
-
-        with_emergency_powers (bool): Whether to include emergency powers
-
-        strategy (str): Strategy type for AI players ("random", "role", "smart")
-
-        human_players (list): List of player IDs that should be human-controlled
-
-
+        players (int): Número de jugadores (6-16).
+        with_communists (bool): Si incluir la facción comunista.
+        with_anti_policies (bool): Si incluir las anti-políticas.
+        with_emergency_powers (bool): Si incluir los poderes de emergencia.
+        strategy (str): Tipo de estrategia para jugadores IA ("random", "role", "smart").
+        human_players (list): Lista de IDs de jugadores que serán controlados por humanos.
+        logger (GameLogger): Logger para registrar eventos del juego.
 
     Returns:
+        str: Resultado del juego.
 
-        str: Game result
-
+    Raises:
+        ValueError: Si el número de jugadores no está entre 6 y 16.
     """
-
-    # Validate player count
-
     if players < 6 or players > 16:
-
         raise ValueError("Player count must be between 6 and 16")
 
-    game = SHXLGame(logger=logger)  # Set up the game
-
+    game = SHXLGame(logger=logger)
     game.setup_game(
         players,
         with_communists=with_communists,
@@ -59,16 +50,19 @@ def run_game(
         ai_strategy=strategy,
     )
 
-    # Run the game
-
     result = game.start_game()
-
     return result
 
 
 def get_player_and_human_config():
-    """Get player count and human player configuration"""
-    # Player count
+    """Obtiene la configuración del número de jugadores y jugadores humanos.
+
+    Solicita al usuario el número total de jugadores y qué jugadores serán
+    controlados por humanos.
+
+    Returns:
+        tuple: Una tupla que contiene (número_jugadores, lista_jugadores_humanos).
+    """
     while True:
         try:
             player_count = int(input("Number of players (6-16): "))
@@ -78,7 +72,6 @@ def get_player_and_human_config():
         except ValueError:
             print("Please enter a valid number.")
 
-    # Human players
     human_players = []
     while True:
         try:
@@ -109,7 +102,16 @@ def get_player_and_human_config():
 
 
 def select_game_mode():
-    """Select game mode and return configuration"""
+    """Selecciona el modo de juego y devuelve la configuración correspondiente.
+
+    Permite al usuario elegir entre tres modos de juego:
+    1. Modo Clásico (Secret Hitler original)
+    2. Modo XL (experiencia completa de Secret Hitler XL)
+    3. Personalizado (configuración personalizada)
+
+    Returns:
+        dict: Diccionario con la configuración del juego seleccionada.
+    """
     print("\n===== Secret Hitler XL - Game Mode Selection =====\n")
     print("Select game mode:")
     print("  1. Classic Mode (Original Secret Hitler)")
@@ -126,7 +128,6 @@ def select_game_mode():
             print("Please enter a valid number.")
 
     if mode_choice == 1:
-        # Classic Mode
         print("\n=== Classic Mode Selected ===")
         print(
             "Configuration: No communists, no anti-policies, no emergency powers, role-based AI"
@@ -144,7 +145,6 @@ def select_game_mode():
         }
 
     elif mode_choice == 2:
-        # XL Mode
         print("\n=== XL Mode Selected ===")
         print("Configuration: Communists, anti-policies, emergency powers, smart AI")
 
@@ -160,16 +160,22 @@ def select_game_mode():
         }
 
     else:
-        # Personalized Mode
         print("\n=== Personalized Mode Selected ===")
         return personalized_setup()
 
 
 def personalized_setup():
-    """Personalized setup for game parameters (original interactive_setup logic)"""
+    """Configuración personalizada para los parámetros del juego.
+
+    Permite al usuario configurar individualmente cada aspecto del juego,
+    incluyendo facción comunista, anti-políticas, poderes de emergencia,
+    estrategia de IA y semilla aleatoria.
+
+    Returns:
+        dict: Diccionario con la configuración personalizada del juego.
+    """
     player_count, human_players = get_player_and_human_config()
 
-    # Communist faction
     while True:
         communist_choice = input("\nInclude communist faction? (y/n): ").lower()
         if communist_choice in ("y", "n"):
@@ -177,7 +183,6 @@ def personalized_setup():
             break
         print("Please enter 'y' or 'n'.")
 
-    # Anti-policies (only if communists are enabled)
     with_anti_policies = False
     if with_communists:
         while True:
@@ -187,7 +192,6 @@ def personalized_setup():
                 break
             print("Please enter 'y' or 'n'.")
 
-    # Emergency powers
     while True:
         emergency_powers_choice = input("Include emergency powers? (y/n): ").lower()
         if emergency_powers_choice in ("y", "n"):
@@ -195,7 +199,6 @@ def personalized_setup():
             break
         print("Please enter 'y' or 'n'.")
 
-    # AI strategy
     strategies = ["random", "role", "smart"]
     print("\nSelect AI strategy:")
     print("  1. Random (AI makes completely random choices)")
@@ -212,7 +215,6 @@ def personalized_setup():
         except ValueError:
             print("Please enter a valid number.")
 
-    # Random seed
     seed_value = None
     while True:
         seed_choice = input(
@@ -243,7 +245,11 @@ def personalized_setup():
 
 
 def ask_play_again():
-    """Ask the user if they want to play again"""
+    """Pregunta al usuario si desea jugar otra partida.
+
+    Returns:
+        bool: True si el usuario quiere jugar otra partida, False en caso contrario.
+    """
     while True:
         choice = input("\nWould you like to play another game? (y/n): ").lower().strip()
         if choice in ("y", "yes"):
@@ -255,16 +261,19 @@ def ask_play_again():
 
 
 def run_game_loop(config, logger):
-    """Run games in a loop until the user chooses to exit"""
+    """Ejecuta partidas en un bucle hasta que el usuario elija salir.
+
+    Args:
+        config (dict): Configuración del juego.
+        logger (GameLogger): Logger para registrar eventos del juego.
+    """
     game_number = 1
 
-    # Welcome message for the first game
     print("\n" + "=" * 60)
     print("           WELCOME TO SECRET HITLER XL!")
     print("=" * 60)
 
     while True:
-        # Clear visual separator for new game
         if game_number > 1:
             print("\n" + "=" * 60)
             print(f"                    GAME #{game_number}")
@@ -273,10 +282,8 @@ def run_game_loop(config, logger):
             print(f"\n                    GAME #{game_number}")
             print("=" * 60)
 
-        # Show configuration summary
         print_configuration_summary(config)
 
-        # Run the game
         print("Starting game...\n")
         run_game(
             config["player_count"],
@@ -288,17 +295,14 @@ def run_game_loop(config, logger):
             logger=logger,
         )
 
-        # Game finished
         print("\n" + "=" * 60)
         print(f"                 GAME #{game_number} FINISHED")
         print("=" * 60)
 
-        # Ask if they want to play again
         if not ask_play_again():
             print("\nThanks for playing Secret Hitler XL! Goodbye!")
             break
 
-        # Ask if they want to change configuration for next game
         print("\nPreparing for a new game...")
         while True:
             change_config = (
@@ -319,7 +323,11 @@ def run_game_loop(config, logger):
 
 
 def print_configuration_summary(config):
-    """Print a summary of the game configuration"""
+    """Imprime un resumen de la configuración del juego.
+
+    Args:
+        config (dict): Diccionario con la configuración del juego.
+    """
     print("\n=== Game Configuration Summary ===")
     print(f"Players: {config['player_count']}")
     print(
@@ -337,15 +345,20 @@ def print_configuration_summary(config):
 
 
 def interactive_setup():
-    """Interactive setup for game parameters"""
+    """Configuración interactiva para los parámetros del juego.
+
+    Returns:
+        dict: Diccionario con la configuración del juego seleccionada.
+    """
     return select_game_mode()
 
 
 def main():
-    """Main entry point for the game"""
+    """Punto de entrada principal del juego.
 
-    # Parse command line arguments
-
+    Analiza los argumentos de línea de comandos y ejecuta el juego en modo
+    interactivo o con parámetros especificados por línea de comandos.
+    """
     parser = argparse.ArgumentParser(description="Run a game of Secret Hitler XL")
 
     parser.add_argument(
@@ -404,45 +417,24 @@ def main():
 
     args = parser.parse_args()
 
-    # build logger from CLI arg
-
     selected_level = LogLevel[args.log_level.upper()]
-
-    cli_logger = GameLogger(
-        selected_level
-    )  # Determine if we should use interactive setup
+    cli_logger = GameLogger(selected_level)
 
     use_interactive = args.interactive or args.players is None
 
     if use_interactive:
-
-        # Use interactive setup and game loop
-
         config = interactive_setup()
-
-        # Run games in a loop
         run_game_loop(config, cli_logger)
-
     else:
-
-        # Use command-line arguments
-
-        # Set random seed if provided
-
         if args.seed is not None:
-
             seed(args.seed)
-
-        # Process human player IDs
 
         human_players = []
 
         if args.human_player is not None:
-
             human_players.append(args.human_player)
 
         if args.human_players:
-
             human_players.extend(
                 [
                     int(pid.strip())
@@ -454,7 +446,7 @@ def main():
         human_players = list(set(human_players))
 
         run_game(
-            args.players if args.players else 8,  # Default to 8 players
+            args.players if args.players else 8,
             with_communists=not args.no_communists,
             with_anti_policies=args.anti_policies,
             with_emergency_powers=args.emergency_powers,
@@ -465,5 +457,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

@@ -1,41 +1,48 @@
-from src.game.powers.abstract_power import Power
+"""Módulo que implementa los poderes específicos de la facción fascista.
 
-# Fascist Powers
+Este módulo contiene las clases que representan los poderes especiales
+que los fascistas pueden usar durante el juego para investigar,
+manipular y eliminar jugadores.
+"""
+
+from src.game.powers.abstract_power import Power
 
 
 class InvestigateLoyalty(Power):
-    def execute(self, target_player):
-        """
-        Investigates a player's party membership
+    """Poder que permite investigar la lealtad de partido de un jugador."""
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de investigar la lealtad de un jugador.
 
         Args:
-            target_player: The player to investigate
+            target_player: El jugador objetivo para investigar.
 
         Returns:
-            str: The party membership of the target player
+            str: La afiliación de partido del jugador objetivo.
         """
-        # Mark the player as investigated
+        target_player = args[0]
+
         self.game.state.investigated_players.append(target_player)
 
-        # Return the player's party membership
         return target_player.role.party_membership
 
 
 class SpecialElection(Power):
-    def execute(self, next_president):
-        """
-        Sets the next president for a special election
+    """Poder que permite establecer un presidente especial para la próxima elección."""
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de elección especial.
 
         Args:
-            next_president: The player to be the next president
+            next_president: El jugador que será el próximo presidente.
 
         Returns:
-            player: The player selected as next president
+            Player: El jugador seleccionado como próximo presidente.
         """
-        # Store the current president index for returning after the special election
+        next_president = args[0]
+
         self.game.state.special_election_return_index = self.game.state.president.id
 
-        # Set the next president directly
         self.game.state.special_election = True
         self.game.state.president_candidate = next_president
 
@@ -43,34 +50,35 @@ class SpecialElection(Power):
 
 
 class PolicyPeek(Power):
-    def execute(self):
-        """
-        Views the top 3 policies in the draw pile
+    """Poder que permite ver las próximas 3 políticas de la pila de robo."""
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de espiar políticas.
 
         Returns:
-            list: The top 3 policies
+            list: Las 3 políticas superiores de la pila.
         """
-        # Get the top 3 policies without drawing them
         top_policies = self.game.state.board.policies[:3]
 
         return top_policies
 
 
 class Execution(Power):
-    def execute(self, target_player):
-        """
-        Executes a player
+    """Poder que permite ejecutar a un jugador eliminándolo del juego."""
+
+    def execute(self, *args, **kwargs):
+        """Ejecuta el poder de ejecución.
 
         Args:
-            target_player: The player to execute
+            target_player: El jugador a ejecutar.
 
         Returns:
-            player: The executed player
+            Player: El jugador ejecutado.
         """
-        # Mark the player as dead
+        target_player = args[0]
+
         target_player.is_dead = True
 
-        # Remove from active players
         if target_player in self.game.state.active_players:
             self.game.state.active_players.remove(target_player)
 

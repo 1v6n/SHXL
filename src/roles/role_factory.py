@@ -1,29 +1,33 @@
+"""Fábrica de roles para Secret Hitler XL.
+
+Este módulo proporciona funcionalidades para generar distribuciones de roles
+basadas en el número de jugadores y configuración del juego.
+"""
+
 from random import shuffle
 
 from src.roles.role import Communist, Fascist, Hitler, Liberal
 
 
 class RoleFactory:
-    """Factory class to generate roles based on player count and game configuration.
+    """Fábrica para generar roles basados en el número de jugadores y configuración del juego.
 
-    This class provides static methods to create role distributions for Secret Hitler XL,
-    dynamically adjusting the contents based on number of players and optional configurations.
+    Esta clase proporciona métodos estáticos para crear distribuciones de roles para Secret Hitler XL,
+    ajustando dinámicamente el contenido basado en el número de jugadores y configuraciones opcionales.
     """
 
     @staticmethod
     def get_role_counts(player_count, with_communists=True):
-        """Get the number of each role type based on player count.
+        """Obtiene el número de cada tipo de rol basado en el número de jugadores.
 
         Args:
-            player_count (int): Number of players in the game.
-            with_communists (bool): Whether to include communist roles.
+            player_count (int): Número de jugadores en el juego.
+            with_communists (bool): Si incluir roles comunistas.
 
         Returns:
-            dict: Dictionary with role counts for each type.
+            dict: Diccionario con conteos de roles para cada tipo.
         """
-        # Role distribution according to the handbook
         role_distribution = {
-            # With communists: (liberals, fascists, communists)
             6: {"with_communists": (3, 1, 1), "without_communists": (4, 1, 0)},
             7: {"with_communists": (4, 1, 1), "without_communists": (4, 2, 0)},
             8: {"with_communists": (4, 2, 1), "without_communists": (5, 2, 0)},
@@ -36,10 +40,9 @@ class RoleFactory:
             15: {"with_communists": (7, 4, 3), "without_communists": (8, 6, 0)},
             16: {"with_communists": (7, 4, 4), "without_communists": (9, 6, 0)},
         }
-        # Ensure player count is within bounds
+
         player_count = max(6, min(16, player_count))
 
-        # Get the right distribution
         key = "with_communists" if with_communists else "without_communists"
         liberals, fascists, communists = role_distribution[player_count][key]
 
@@ -47,19 +50,19 @@ class RoleFactory:
             "liberal": liberals,
             "fascist": fascists,
             "communist": communists,
-            "hitler": 1,  # Always one Hitler
+            "hitler": 1,
         }
 
     @staticmethod
     def create_roles(player_count, with_communists=True):
-        """Create a list of roles based on player count.
+        """Crea una lista de roles basada en el número de jugadores.
 
         Args:
-            player_count (int): Number of players in the game.
-            with_communists (bool): Whether to include communist roles.
+            player_count (int): Número de jugadores en el juego.
+            with_communists (bool): Si incluir roles comunistas.
 
         Returns:
-            list: A shuffled list of Role instances distributed according to game rules.
+            list: Una lista mezclada de instancias de Role distribuidas según las reglas del juego.
         """
         role_counts = RoleFactory.get_role_counts(player_count, with_communists)
 
@@ -71,7 +74,6 @@ class RoleFactory:
         if with_communists:
             roles.extend([Communist() for _ in range(role_counts["communist"])])
 
-        # Shuffle the roles
         shuffle(roles)
 
         return roles

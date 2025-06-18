@@ -1,0 +1,50 @@
+name: Game Simulation
+
+on:
+  push:
+    branches: [ main, develop, 'feat/**' ]
+  pull_request:
+    branches: [ main, develop, 'feat/**' ]
+  workflow_dispatch:  # Allow manual trigger
+    inputs:
+      num_games:
+        description: 'Number of games to simulate'
+        required: false
+        default: '100'
+        type: string
+      players:
+        description: 'Number of players'
+        required: false
+        default: '16'
+        type: string
+
+jobs:
+  simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # Prevent long-running jobs
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run game simulation
+      run: |
+        python simulate_games.py -n ${{ github.event.inputs.num_games || '1000' }} -p ${{ github.event.inputs.players || '16' }} --anti-policies --emergency-powers --compare random role smart
+
+    - name: Upload simulation results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: simulation-results
+        path: |
+          *.png
+          *.txt
+          *.log
+        retention-days: 7

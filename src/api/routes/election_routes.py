@@ -1,5 +1,7 @@
-"""
-Election phase routes
+"""Rutas de la fase de elección.
+
+Este módulo define las rutas de la API Flask para manejar las operaciones
+de la fase de elección del juego, incluyendo nominación de canciller y votación.
 """
 
 from flask import Blueprint, jsonify, request
@@ -23,22 +25,28 @@ election_bp = Blueprint("election", __name__)
 
 @election_bp.route("/games/<game_id>/nominate", methods=["POST"])
 def nominate_chancellor(game_id):
-    """
-    Handles the chancellor nomination phase in the game.
-    This function manages the process of nominating a chancellor, supporting both human and AI players.
-    It performs the following steps:
-      1. Checks for any pending executions before proceeding with nomination.
-      2. Determines if all players are bots; if so, runs the full election cycle automatically.
-      3. If at least one human is present, proceeds to individual voting:
-         - If the president is human, expects a nomineeId in the request and validates eligibility.
-         - If the president is a bot, nominates automatically but still requires human voting.
-      4. Handles special cases such as game over or chaos (no eligible chancellors).
+    """Maneja la fase de nominación de canciller en el juego.
+
+    Esta función gestiona el proceso de nominar un canciller, soportando tanto
+    jugadores humanos como IA. Realiza los siguientes pasos:
+    1. Verifica ejecuciones pendientes antes de proceder con la nominación.
+    2. Determina si todos los jugadores son bots; si es así, ejecuta el ciclo
+       completo de elección automáticamente.
+    3. Si hay al menos un humano presente, procede a votación individual.
+    4. Maneja casos especiales como fin de juego o caos (sin cancilleres elegibles).
+
     Args:
-        game_id (str): The unique identifier for the game.
+        game_id (str): Identificador único del juego.
+
     Returns:
-        Response: A Flask JSON response with the result of the nomination phase, including
-                  status messages, nomination details, eligible voters, and phase transitions.
-                  Returns appropriate HTTP status codes for errors and success.
+        Response: Respuesta JSON de Flask con el resultado de la fase de nominación,
+            incluyendo mensajes de estado, detalles de nominación, votantes elegibles
+            y transiciones de fase. Retorna códigos de estado HTTP apropiados para
+            errores y éxito.
+
+    Note:
+        - Si el presidente es humano, espera nomineeId en la petición y valida elegibilidad.
+        - Si el presidente es bot, nomina automáticamente pero requiere votación humana.
     """
     game = games.get(game_id)
     if not game:
@@ -188,7 +196,7 @@ def nominate_chancellor(game_id):
                 return (
                     jsonify(
                         {
-                            "message": f"Bot president nominated chancellor - ready for human voting",
+                            "message": "Bot president nominated chancellor - ready for human voting",
                             "nomination": {
                                 "president": {
                                     "id": current_president.id,
@@ -229,30 +237,36 @@ def nominate_chancellor(game_id):
 
 @election_bp.route("/games/<game_id>/vote", methods=["POST"])
 def cast_vote(game_id):
-    """
-    Handles the voting process for a given game round.
-    This endpoint receives a vote from a player (human or AI) for the current election phase in the game.
-    It validates the game state, ensures the player is eligible to vote, records the vote, and, if all votes
-    are collected, resolves the election using the election_utils module.
+    """Maneja el proceso de votación para una ronda de juego dada.
+
+    Este endpoint recibe un voto de un jugador (humano o IA) para la fase de
+    elección actual en el juego. Valida el estado del juego, asegura que el
+    jugador sea elegible para votar, registra el voto y, si se recopilan todos
+    los votos, resuelve la elección usando el módulo election_utils.
+
     Args:
-        game_id (str or int): The unique identifier of the game.
+        game_id (str): Identificador único del juego.
+
     Request JSON Body:
-        vote (str): The vote value, either "ja" or "nein" (required for human players).
-        playerId (str or int): The unique identifier of the player casting the vote.
+        vote (str): Valor del voto, "ja" o "nein" (requerido para jugadores humanos).
+        playerId (str): Identificador único del jugador que emite el voto.
+
     Returns:
-        Response: A Flask JSON response with:
-            - Success: Confirmation of vote, voting status, and election result if voting is complete.
-            - Error: Appropriate error message and status code if voting is not allowed or fails.
-    Possible Error Responses:
-        400: Missing playerId or invalid vote value.
-        403: Game not in progress, not in voting phase, or no nomination to vote on.
-        404: Game or player not found.
-        409: Player has already voted.
-        500: Internal server error during voting process.
-    Side Effects:
-        - Records the player's vote in the game state.
-        - Resolves the election and advances the game phase if all votes are collected.
-        - Clears recorded votes after election resolution.
+        Response: Respuesta JSON de Flask con confirmación de voto, estado de
+            votación y resultado de elección si la votación está completa.
+
+    Note:
+        Posibles respuestas de error:
+        - 400: playerId faltante o valor de voto inválido.
+        - 403: Juego no en progreso, no en fase de votación, o sin nominación.
+        - 404: Juego o jugador no encontrado.
+        - 409: Jugador ya ha votado.
+        - 500: Error interno del servidor durante el proceso de votación.
+
+        Efectos secundarios:
+        - Registra el voto del jugador en el estado del juego.
+        - Resuelve la elección y avanza la fase si se recopilan todos los votos.
+        - Limpia votos registrados después de resolución de elección.
     """
 
     data = request.get_json() or {}
@@ -311,7 +325,7 @@ def cast_vote(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Not in voting phase",
+                    "error": "Not in voting phase",
                     "currentPhase": current_phase,
                     "expectedPhase": "voting",
                 }

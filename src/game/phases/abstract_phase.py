@@ -1,31 +1,36 @@
-"""Abstract base class for game phases in Secret Hitler XL."""
+"""Clase base abstracta para las fases del juego en Secret Hitler XL.
+
+Este módulo define la interfaz común que deben implementar todas las fases
+del juego como elección, legislativa, y fin de juego.
+"""
 
 from abc import ABC, abstractmethod
 
 
 class GamePhase(ABC):
-    """Abstract base class for game phases.
+    """Clase base abstracta para las fases del juego.
 
-    Game phases represent distinct stages of gameplay (election, legislative, etc.).
-    Each phase must implement execute() to define its logic and return the next phase.
+    Las fases del juego representan etapas distintas de la jugabilidad como
+    elección, legislativa, etc. Cada fase debe implementar execute() para
+    definir su lógica y retornar la siguiente fase.
 
     Attributes:
-        game: The main game instance containing state and methods.
+        game: Instancia principal del juego que contiene estado y métodos.
     """
 
     def __init__(self, game):
-        """Initialize the game phase.
+        """Inicializa la fase del juego.
 
         Args:
-            game: The main game instance.
+            game: Instancia principal del juego.
         """
         self.game = game
 
     @abstractmethod
     def execute(self):
-        """Execute the phase logic.
+        """Ejecuta la lógica de la fase.
 
         Returns:
-            GamePhase: The next phase to execute.
+            GamePhase: La siguiente fase a ejecutar.
         """
         pass

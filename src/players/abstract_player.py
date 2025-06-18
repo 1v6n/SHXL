@@ -1,11 +1,30 @@
+"""Módulo de jugador abstracto para Secret Hitler XL.
+
+Este módulo define la clase base abstracta Player que sirve como plantilla
+para todos los tipos de jugadores en el juego.
+"""
+
 from abc import ABC, abstractmethod
 
 
 class Player(ABC):
-    """Enhanced player class to support all SHXL features"""
+    """Clase abstracta de jugador mejorada para soportar todas las características de SHXL.
 
-    def __init__(self, id, name, role, state):
-        self.id = id
+    Define la interfaz común para todos los tipos de jugadores, incluyendo
+    conocimiento del juego, estado y métodos abstractos que deben implementar
+    las clases derivadas.
+    """
+
+    def __init__(self, player_id, name, role, state):
+        """Inicializa un jugador con la información básica.
+
+        Args:
+            player_id (int): Identificador único del jugador.
+            name (str): Nombre del jugador.
+            role: Rol asignado al jugador.
+            state: Estado actual del juego.
+        """
+        self.id = player_id
         self.name = name
         self.role = role
         self.state = state
@@ -14,54 +33,80 @@ class Player(ABC):
             len(state.players) if hasattr(state, "players") and state.players else 0
         )
 
-        # Knowledge
-        self.hitler = None  # Will be set if fascist
-        self.fascists = None  # Will be set if fascist
-        self.known_communists = []  # Will be set if communist
-        self.inspected_players = {}  # Player ID -> party membership
-        self.known_affiliations = {}  # Player ID -> party membership
+        self.hitler = None
+        self.fascists = None
+        self.known_communists = []
+        self.inspected_players = {}
+        self.known_affiliations = {}
 
     @property
     def is_fascist(self):
-        """Check if player is fascist"""
+        """Verifica si el jugador es fascista.
+
+        Returns:
+            bool: True si el jugador es fascista, False en caso contrario.
+        """
         return self.role.party_membership == "fascist"
 
     @property
     def is_liberal(self):
-        """Check if player is liberal"""
+        """Verifica si el jugador es liberal.
+
+        Returns:
+            bool: True si el jugador es liberal, False en caso contrario.
+        """
         return self.role.party_membership == "liberal"
 
     @property
     def is_communist(self):
-        """Check if player is communist"""
+        """Verifica si el jugador es comunista.
+
+        Returns:
+            bool: True si el jugador es comunista, False en caso contrario.
+        """
         return self.role.party_membership == "communist"
 
     @property
     def is_hitler(self):
-        """Check if player is Hitler"""
+        """Verifica si el jugador es Hitler.
+
+        Returns:
+            bool: True si el jugador es Hitler, False en caso contrario.
+        """
         return self.role.role == "hitler"
 
     @property
     def knows_hitler(self):
-        """Check if player knows who Hitler is"""
+        """Verifica si el jugador conoce quién es Hitler.
+
+        Returns:
+            bool: True si el jugador conoce la identidad de Hitler.
+        """
         return self.hitler is not None
 
     def __repr__(self):
+        """Devuelve una representación en cadena del jugador.
+
+        Returns:
+            str: Representación del jugador con id, nombre y rol.
+        """
         return f"Player id:{self.id}, name:{self.name}, role:{self.role}"
 
     def initialize_role_attributes(self):
-        """Initialize attributes based on the assigned role"""
+        """Inicializa atributos basados en el rol asignado.
+
+        Configura el conocimiento inicial del jugador según su rol,
+        incluyendo información sobre otros fascistas, Hitler o comunistas.
+        """
         if self.role is None:
             return
 
-        # Get player count from the game state
         player_count = (
             len(self.state.players)
             if hasattr(self.state, "players") and self.state.players
             else 0
         )
 
-        # Initialize role-specific attributes
         if self.is_fascist and not self.is_hitler:
             self.fascists = []
             self.hitler = None
@@ -70,152 +115,136 @@ class Player(ABC):
         elif self.is_communist and player_count < 11:
             self.known_communists = []
 
-    # Required methods
-
     @abstractmethod
     def nominate_chancellor(self):
-        """
-        Choose a chancellor
+        """Elige un canciller.
 
         Returns:
-            player: The nominated chancellor
+            Player: El canciller nominado.
         """
 
     @abstractmethod
     def filter_policies(self, policies):
-        """
-        Choose which policies to pass as president
+        """Elige qué políticas pasar como presidente.
 
         Args:
-            policies: List of 3 policies
+            policies (list): Lista de 3 políticas.
 
         Returns:
-            tuple: (chosen [2], discarded [1])
+            tuple: (políticas elegidas [2], política descartada [1]).
         """
 
     @abstractmethod
     def choose_policy(self, policies):
-        """
-        Choose which policy to enact as chancellor
+        """Elige qué política promulgar como canciller.
 
         Args:
-            policies: List of 2 policies
+            policies (list): Lista de 2 políticas.
 
         Returns:
-            tuple: (chosen [1], discarded [1])
+            tuple: (política elegida [1], política descartada [1]).
         """
 
     @abstractmethod
     def vote(self):
-        """
-        Vote on a government
+        """Vota sobre un gobierno.
 
         Returns:
-            bool: True for Ja, False for Nein
+            bool: True para Ja, False para Nein.
         """
 
     @abstractmethod
     def veto(self):
-        """
-        Decide whether to veto (as chancellor)
+        """Decide si vetar como canciller.
 
         Returns:
-            bool: True to veto, False otherwise
+            bool: True para vetar, False en caso contrario.
         """
 
     @abstractmethod
     def accept_veto(self):
-        """
-        Decide whether to accept veto (as president)
+        """Decide si aceptar el veto como presidente.
 
         Returns:
-            bool: True to accept veto, False otherwise
+            bool: True para aceptar el veto, False en caso contrario.
         """
 
     @abstractmethod
     def view_policies(self, policies):
-        """
-        React to seeing policies with Policy Peek
+        """Reacciona a ver políticas con espionaje de políticas.
 
         Args:
-            policies: List of policies
+            policies (list): Lista de políticas vistas.
         """
 
     @abstractmethod
     def kill(self):
-        """
-        Choose a player to execute
+        """Elige un jugador para ejecutar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para ejecutar.
         """
 
     @abstractmethod
     def choose_player_to_mark(self):
-        """
-        Choose a player to mark
+        """Elige un jugador para marcar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para marcar.
         """
 
     @abstractmethod
     def inspect_player(self):
-        """
-        Choose a player to inspect
+        """Elige un jugador para inspeccionar.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para inspeccionar.
         """
 
     @abstractmethod
     def choose_next(self):
-        """
-        Choose the next president (special election)
+        """Elige el próximo presidente en elección especial.
 
         Returns:
-            player: The chosen player
-        """
-
-    # Communist-specific methods
+            Player: El jugador elegido como próximo presidente."""
 
     @abstractmethod
     def choose_player_to_radicalize(self):
-        """
-        Choose a player to convert to communist
+        """Elige un jugador para convertir al comunismo.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para radicalizar.
         """
-
-    # Emergency power methods
 
     @abstractmethod
     def propaganda_decision(self, policy):
-        """
-        Decide whether to discard the top policy
+        """Decide si descartar la política superior.
 
         Args:
-            policy: The top policy
+            policy: La política superior del mazo.
 
         Returns:
-            bool: True to discard, False to keep
+            bool: True para descartar, False para mantener.
         """
 
     @abstractmethod
     def choose_revealer(self, eligible_players):
-        """
-        Choose a player to reveal party membership to (Impeachment)
+        """Elige un jugador para revelar afiliación política.
+
+        Args:
+            eligible_players (list): Jugadores elegibles.
 
         Returns:
-            player: The chosen player
+            Player: El jugador elegido para revelar afiliación.
         """
 
     @abstractmethod
     def social_democratic_removal_choice(self, state):
-        """
-        Choose which policy track to remove from (Social Democratic)
+        """Elige qué pista de políticas eliminar (Socialdemócrata).
+
+        Args:
+            state: Estado actual del juego.
 
         Returns:
-            str: "fascist" or "communist"
+            str: "fascist" o "communist".
         """

@@ -1,5 +1,7 @@
-"""
-Game management routes
+"""Rutas de gestión del juego.
+
+Este módulo define las rutas de la API Flask para manejar la gestión
+del juego, incluyendo creación, unión, inicio y consulta de estado.
 """
 
 import uuid
@@ -153,31 +155,39 @@ def join_game(game_id):
 
 @game_bp.route("/games/<game_id>/start", methods=["POST"])
 def start_game(game_id):
-    """
-    Starts a game session when the host decides all players are ready.
-    Endpoint: POST /games/<game_id>/start
-    Request JSON:
-        "hostPlayerID": <int>
-    Path Parameters:
-        game_id (str): The unique identifier of the game to start.
-    Request Body:
-        hostPlayerID (int): The ID of the player attempting to start the game. Must be 0 (the host).
-    Responses:
-        200 OK:
-        Game started successfully. Returns game state, initial president, and player info.
-        400 Bad Request:
-        - Missing hostPlayerID in request body.
-        403 Forbidden:
-        - Only the host can start the game.
-        - No players in the game.
-        - Game already in progress.
-        - Not enough players to start the game.
-        404 Not Found:
-        - Game with the given game_id does not exist.
-        500 Internal Server Error:
-        - Failed to assign initial president or other unexpected errors.
+    """Inicia una sesión de juego cuando el host decide que todos los jugadores están listos.
+
+    Valida que el host tenga permisos, que haya suficientes jugadores y configura
+    el juego con roles asignados. Solo el jugador con ID 0 (host) puede iniciar la partida.
+
+    Args:
+        game_id (str): Identificador único del juego a iniciar.
+
     Returns:
-        JSON response with game status, player information, and initial president details.
+        tuple: Una tupla con la respuesta JSON y el código de estado HTTP.
+            En caso de éxito (200):
+            - message (str): Mensaje de confirmación
+            - gameState (str): Estado del juego ("in_progress")
+            - currentPlayers (int): Número de jugadores actuales
+            - roles_assigned (bool): Si los roles fueron asignados
+            - deck_ready (bool): Si el mazo está preparado
+            - playersPreserved (bool): Si los jugadores se preservaron
+            - initialPresident (dict): Información del presidente inicial
+            - playerTypes (list): Tipos de todos los jugadores
+
+            En caso de error (400/403/404/500):
+            - error (str): Descripción del error
+
+    Request JSON:
+        hostPlayerID (int): ID del jugador que intenta iniciar el juego. Debe ser 0 (host).
+
+    Note:
+        Respuestas de error:
+        - 400: hostPlayerID faltante en el cuerpo de la petición.
+        - 403: Solo el host puede iniciar, no hay jugadores, juego ya en progreso,
+               o no hay suficientes jugadores.
+        - 404: Juego con el game_id dado no existe.
+        - 500: Falló al asignar presidente inicial u otros errores inesperados.
     """
 
     data = request.get_json()
@@ -330,12 +340,35 @@ def get_game_state(game_id):
 
 @game_bp.route("/games/<game_id>/add-bots", methods=["POST"])
 def add_bots(game_id):
-    """Agregar múltiples bots a la sala de juego.
+    """Agrega múltiples bots a la sala de juego.
+
+    Permite al host agregar jugadores IA a la partida antes de que comience.
+    Los bots se crean con la estrategia especificada y nombres generados
+    automáticamente.
+
+    Args:
+        game_id (str): Identificador único del juego.
+
+    Returns:
+        tuple: Una tupla con la respuesta JSON y el código de estado HTTP.
+            En caso de éxito (200):
+            - message (str): Mensaje de confirmación
+            - addedBots (list): Lista de bots agregados con sus detalles
+            - currentPlayers (int): Número actual de jugadores
+            - maxPlayers (int): Número máximo de jugadores
+
+            En caso de error (400/403/404):
+            - error (str): Descripción del error
 
     Request JSON:
-        count (int): Número de bots a agregar
-        strategy (str, optional): Estrategia para todos los bots (default: "smart")
-        namePrefix (str, optional): Prefijo para nombres de bots (default: "Bot")
+        count (int): Número de bots a agregar (1-10).
+        strategy (str, optional): Estrategia para todos los bots (default: "smart").
+        namePrefix (str, optional): Prefijo para nombres de bots (default: "Bot").
+
+    Note:
+        - Solo se pueden agregar bots antes de que inicie la partida.
+        - El número de bots no puede exceder los espacios disponibles.
+        - Los nombres se generan como "{namePrefix}_{número}".
     """
     data = request.get_json()
     bot_count = data.get("count", 1)
@@ -358,7 +391,7 @@ def add_bots(game_id):
 
     added_bots = []
 
-    for i in range(bot_count):
+    for _ in range(bot_count):
         new_id = len(game.state.players)
         bot_name = f"{name_prefix}_{new_id + 1}"
 

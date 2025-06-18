@@ -1,3 +1,9 @@
+"""Fábrica de políticas para Secret Hitler XL.
+
+Este módulo proporciona funcionalidades para generar mazos de cartas de políticas
+basados en la configuración del juego y número de jugadores.
+"""
+
 from random import shuffle
 
 from src.policies.policy import (
@@ -13,10 +19,10 @@ from src.policies.policy import (
 
 
 class PolicyFactory:
-    """Factory class to generate a deck of policy cards based on game settings.
+    """Fábrica para generar un mazo de cartas de políticas basado en la configuración del juego.
 
-    This class provides a static method to create a policy deck for Secret Hitler XL,
-    dynamically adjusting the contents based on number of players and optional configurations.
+    Esta clase proporciona un método estático para crear un mazo de políticas para Secret Hitler XL,
+    ajustando dinámicamente el contenido basado en el número de jugadores y configuraciones opcionales.
     """
 
     @staticmethod
@@ -26,17 +32,18 @@ class PolicyFactory:
         with_anti_policies=False,
         with_emergency_powers=False,
     ):
-        """Creates a policy deck based on game configuration.
+        """Crea un mazo de políticas basado en la configuración del juego.
 
         Args:
-            player_count (int): Number of players in the game.
-            with_communists (bool): Whether communist policies should be included.
-            with_anti_policies (bool): Whether anti-policies should be included (requires communists).
-            with_emergency_powers (bool): Whether emergency powers should be included for games with more than 10 players.
+            player_count (int): Número de jugadores en el juego.
+            with_communists (bool): Si se deben incluir políticas comunistas.
+            with_anti_policies (bool): Si se deben incluir anti-políticas (requiere comunistas).
+            with_emergency_powers (bool): Si se deben incluir poderes de emergencia para juegos
+                con más de 10 jugadores.
 
         Returns:
-            list: A shuffled list of Policy instances, including liberal, fascist, communist,
-                  anti-policies, and emergency powers depending on the settings.
+            list: Una lista mezclada de instancias de Policy, incluyendo liberales, fascistas,
+                comunistas, anti-políticas y poderes de emergencia según la configuración.
         """
         if player_count < 8:
             liberal_count = 5

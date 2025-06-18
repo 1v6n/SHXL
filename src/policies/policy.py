@@ -1,106 +1,123 @@
-class Policy(object):
-    """Base class for all policy types."""
+"""Módulo de políticas del juego Secret Hitler XL.
 
-    def __init__(self, type):
+Este módulo define las diferentes clases de políticas que pueden ser
+promulgadas durante el juego, incluyendo políticas estándar y anti-políticas.
+"""
 
-        self.type = type
+
+class Policy:
+    """Clase base para todos los tipos de políticas.
+    Representa una política genérica con un tipo específico.
+    """
+
+    def __init__(self, policy_type):
+        """Inicializa una política con el tipo especificado.
+
+        Args:
+            policy_type (str): El tipo de política.
+        """
+        self.type = policy_type
 
     def __repr__(self):
+        """Devuelve una representación en cadena de la política.
 
+        Returns:
+            str: El tipo de política con la primera letra en mayúscula.
+        """
         return self.type.title()
 
 
 class Fascist(Policy):
-    """Fascist policy card.
+    """Política fascista.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes a fascist policy."""
+        """Inicializa una política fascista."""
         super(Fascist, self).__init__("fascist")
 
 
 class Liberal(Policy):
-    """Liberal policy card.
+    """Política liberal.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes a liberal policy."""
+        """Inicializa una política liberal."""
         super(Liberal, self).__init__("liberal")
 
 
 class Communist(Policy):
-    """Communist policy card.
+    """Política comunista.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes a communist policy."""
+        """Inicializa una política comunista."""
         super(Communist, self).__init__("communist")
 
 
 class AntiFascist(Policy):
-    """Anti-policy that removes a fascist policy.
+    """Anti-política que elimina una política fascista.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes an anti-fascist policy."""
+        """Inicializa una anti-política fascista."""
         super(AntiFascist, self).__init__("antifascist")
 
 
 class AntiCommunist(Policy):
-    """Anti-policy that removes a communist policy.
+    """Anti-política que elimina una política comunista.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes an anti-communist policy."""
+        """Inicializa una anti-política comunista."""
         super(AntiCommunist, self).__init__("anticommunist")
 
 
 class SocialDemocratic(Policy):
-    """Anti-policy that removes either a fascist or communist policy.
+    """Anti-política que elimina una política fascista o comunista.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes a social-democratic policy."""
+        """Inicializa una política socialdemócrata."""
         super(SocialDemocratic, self).__init__("socialdemocratic")
 
 
 class Article48(Policy):
-    """Emergency power policy for the President.
+    """Política de poder de emergencia para el Presidente.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes an Article 48 emergency policy."""
+        """Inicializa una política de emergencia Article 48."""
         super(Article48, self).__init__("article48")
 
 
 class EnablingAct(Policy):
-    """Emergency power policy for the Chancellor.
+    """Política de poder de emergencia para el Canciller.
 
-    Inherits from:
-        Policy: Base class for all policy types.
+    Hereda de:
+        Policy: Clase base para todos los tipos de políticas.
     """
 
     def __init__(self):
-        """Initializes an Enabling Act emergency policy."""
+        """Inicializa una política de emergencia Enabling Act."""
         super(EnablingAct, self).__init__("enablingact")

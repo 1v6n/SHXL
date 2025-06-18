@@ -1,5 +1,8 @@
-"""
-Legislative phase routes
+"""Rutas de la fase legislativa.
+
+Este módulo define las rutas de la API Flask para manejar las operaciones
+de la fase legislativa del juego, incluyendo robo de políticas, descarte
+presidencial, promulgación de canciller y ejecución de poderes.
 """
 
 from flask import Blueprint, jsonify, request
@@ -20,20 +23,27 @@ legislative_bp = Blueprint("legislative", __name__)
 
 @legislative_bp.route("/games/<game_id>/president/draw", methods=["POST"])
 def president_draw_policies(game_id):
-    """
-    Handles the action where the president draws 3 policy cards during the legislative phase of the game.
-    This function performs the following steps:
-    - Validates that the game exists and is in progress.
-    - Ensures the current phase is 'legislative' and both president and chancellor are assigned.
-    - Checks that the president has not already drawn policies in this round.
-    - Uses legislative_utils to draw 3 policies for the president.
-    - If the president is a human player, returns the drawn policies and awaits a discard decision.
-    - If the president is a bot, automatically discards a policy and proceeds to the chancellor's turn.
-    - Returns appropriate JSON responses for each scenario, including error handling.
+    """Maneja la acción donde el presidente roba 3 cartas de política durante la fase legislativa.
+
+    Esta función realiza los siguientes pasos:
+    - Valida que el juego exista y esté en progreso.
+    - Asegura que la fase actual sea 'legislative' y que presidente y canciller estén asignados.
+    - Verifica que el presidente no haya robado políticas ya en esta ronda.
+    - Usa legislative_utils para robar 3 políticas para el presidente.
+    - Si el presidente es humano, retorna las políticas robadas y espera decisión de descarte.
+    - Si el presidente es bot, automáticamente descarta una política y procede al turno del canciller.
+
     Args:
-        game_id (str or int): The unique identifier of the game.
+        game_id (str): Identificador único del juego.
+
     Returns:
-        Response: A Flask JSON response with status code and relevant data or error message.
+        Response: Respuesta JSON de Flask con código de estado y datos relevantes o mensaje de error.
+            En caso de éxito (200):
+            - Para presidente humano: políticas robadas y opciones de descarte
+            - Para presidente bot: elección automática y avance a canciller
+
+            En caso de error (403/404/500):
+            - error (str): Descripción del error ocurrido
     """
 
     game = games.get(game_id)
@@ -59,7 +69,7 @@ def president_draw_policies(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Not in legislative phase",
+                    "error": "Not in legislative phase",
                     "currentPhase": current_phase,
                     "expectedPhase": "legislative",
                 }
@@ -125,7 +135,7 @@ def president_draw_policies(game_id):
             )
 
         else:
-            chosen, discarded = game.presidential_policy_choice(draw_result["policies"])
+            chosen, _ = game.presidential_policy_choice(draw_result["policies"])
 
             policy_indices = []
             for i, policy in enumerate(draw_result["policies"]):
@@ -196,24 +206,26 @@ def president_draw_policies(game_id):
 
 @legislative_bp.route("/games/<game_id>/president/discard", methods=["POST"])
 def president_discard_policy(game_id):
-    """
-    Handles the president's action of discarding one of the three legislative policies in a Secret Hitler-like game.
+    """Maneja la acción del presidente de descartar una de las tres políticas legislativas.
+
     Args:
-        game_id (str or int): The unique identifier for the game session.
-    Request JSON Body:
-        discardIndex (int): The index (0, 1, or 2) of the policy to discard.
+        game_id (str): Identificador único de la sesión de juego.
+
     Returns:
-        Response: A Flask JSON response with:
-            - 200 OK and details of the discarded policy and next phase if successful.
-            - 400 Bad Request if required data is missing or invalid.
-            - 403 Forbidden if the game state does not allow discarding.
-            - 404 Not Found if the game does not exist.
-            - 500 Internal Server Error for unexpected failures.
-    Side Effects:
-        - Updates the game state by discarding the selected policy.
-        - Advances the game to the chancellor's enactment phase if successful.
-    Raises:
-        Exception: Returns a 500 error with details if an unexpected error occurs.
+        Response: Respuesta JSON de Flask con:
+            - 200 OK y detalles de la política descartada y siguiente fase si es exitoso.
+            - 400 Bad Request si faltan datos requeridos o son inválidos.
+            - 403 Forbidden si el estado del juego no permite descartar.
+            - 404 Not Found si el juego no existe.
+            - 500 Internal Server Error para fallos inesperados.
+
+    Request JSON Body:
+        discardIndex (int): Índice (0, 1, o 2) de la política a descartar.
+
+    Note:
+        Efectos secundarios:
+        - Actualiza el estado del juego descartando la política seleccionada.
+        - Avanza el juego a la fase de promulgación del canciller si es exitoso.
     """
 
     data = request.get_json() or {}
@@ -315,17 +327,30 @@ def president_discard_policy(game_id):
 
 @legislative_bp.route("/games/<game_id>/chancellor/enact", methods=["POST"])
 def chancellor_enact_policy(game_id):
-    """
-    Permite al canciller promulgar una de las dos políticas legislativas disponibles.
-    Maneja tanto cancilleres humanos como bots, y gestiona la ejecución automática o manual de poderes.
+    """Permite al canciller promulgar una de las dos políticas legislativas disponibles.
 
-    Flujo completo:
-    1. Canciller humano → requiere enactIndex
-    2. Canciller bot → elección automática
-    3. Si se otorga poder:
-       - Presidente bot → ejecución automática
-       - Presidente humano → pasa a fase executive_power
-    4. Sin poder → finaliza sesión y pasa a election
+    Maneja tanto cancilleres humanos como bots, y gestiona la ejecución automática
+    o manual de poderes presidenciales.
+
+    Args:
+        game_id (str): Identificador único del juego.
+
+    Returns:
+        Response: Respuesta JSON de Flask con detalles de la política promulgada
+            y siguiente fase del juego.
+
+    Request JSON Body:
+        enactIndex (int, opcional): Índice (0 o 1) de la política a promulgar.
+            Requerido solo para cancilleres humanos.
+
+    Note:
+        Flujo completo:
+        1. Canciller humano → requiere enactIndex
+        2. Canciller bot → elección automática
+        3. Si se otorga poder:
+           - Presidente bot → ejecución automática
+           - Presidente humano → pasa a fase executive_power
+        4. Sin poder → finaliza sesión y pasa a election
     """
     data = request.get_json() or {}
     enact_index = data.get("enactIndex")
@@ -353,7 +378,7 @@ def chancellor_enact_policy(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Not in legislative phase",
+                    "error": "Not in legislative phase",
                     "currentPhase": current_phase,
                     "expectedPhase": "legislative",
                 }
@@ -435,9 +460,7 @@ def chancellor_enact_policy(game_id):
             }
 
         else:
-            enacted, discarded = game.chancellor_policy_choice(
-                game.state.chancellor_policies
-            )
+            enacted, _ = game.chancellor_policy_choice(game.state.chancellor_policies)
             auto_enact_index = 0 if game.state.chancellor_policies[0] == enacted else 1
 
             choice_result = handle_chancellor_choice(game, auto_enact_index)
@@ -588,14 +611,32 @@ def chancellor_enact_policy(game_id):
 
 @legislative_bp.route("/games/<game_id>/executive/execute", methods=["POST"])
 def execute_presidential_power_endpoint(game_id):
-    """
-    Permite al presidente humano ejecutar un poder presidencial.
+    """Permite al presidente humano ejecutar un poder presidencial.
+
+    Args:
+        game_id (str): Identificador único del juego.
+
+    Returns:
+        Response: Respuesta JSON de Flask con resultado de la ejecución del poder.
+            En caso de éxito (200):
+            - message (str): Mensaje de confirmación
+            - powerExecution (dict): Detalles de la ejecución del poder
+            - gameOver (bool, opcional): Si el juego terminó
+            - sessionEnd (dict, opcional): Detalles del fin de sesión
+
+            En caso de error (400/403/404/500):
+            - error (str): Descripción del error
 
     Request JSON:
-        {
-            "powerType": "execution|investigation|special_election|policy_peek",
-            "targetPlayerId": <int> (opcional para policy_peek)
-        }
+        powerType (str): Tipo de poder ("execution", "investigation",
+            "special_election", "policy_peek").
+        targetPlayerId (int, opcional): ID del jugador objetivo. Requerido
+            para todos los poderes excepto policy_peek.
+
+    Note:
+        - Solo presidentes humanos pueden usar este endpoint.
+        - El poder debe coincidir con el poder pendiente en el estado del juego.
+        - Algunos poderes pueden terminar el juego si ejecutan a Hitler.
     """
     data = request.get_json() or {}
     power_type = data.get("powerType")
@@ -610,7 +651,7 @@ def execute_presidential_power_endpoint(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Not in executive power phase",
+                    "error": "Not in executive power phase",
                     "currentPhase": current_phase,
                 }
             ),
@@ -634,7 +675,7 @@ def execute_presidential_power_endpoint(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Power type mismatch",
+                    "error": "Power type mismatch",
                     "expected": expected_power,
                     "provided": power_type,
                 }
@@ -723,8 +764,27 @@ def execute_presidential_power_endpoint(game_id):
 
 @legislative_bp.route("/games/<game_id>/executive/options", methods=["GET"])
 def get_executive_power_options(game_id):
-    """
-    Obtiene las opciones disponibles para el poder presidencial pendiente.
+    """Obtiene las opciones disponibles para el poder presidencial pendiente.
+
+    Args:
+        game_id (str): Identificador único del juego.
+
+    Returns:
+        Response: Respuesta JSON de Flask con opciones disponibles para el poder.
+            En caso de éxito (200):
+            - powerType (str): Tipo de poder pendiente
+            - requiresTarget (bool): Si el poder requiere un objetivo
+            - availableTargets (list): Lista de jugadores disponibles como objetivos
+            - president (dict): Información del presidente
+            - instruction (str): Instrucción para el usuario
+
+            En caso de error (403/404):
+            - error (str): Descripción del error
+
+    Note:
+        - Solo disponible durante la fase executive_power.
+        - Los objetivos disponibles excluyen al presidente y jugadores muertos.
+        - Para policy_peek no se requieren objetivos.
     """
     game = games.get(game_id)
     if not game:
@@ -735,7 +795,7 @@ def get_executive_power_options(game_id):
         return (
             jsonify(
                 {
-                    "error": f"Not in executive power phase",
+                    "error": "Not in executive power phase",
                     "currentPhase": current_phase,
                 }
             ),

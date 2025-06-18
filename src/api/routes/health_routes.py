@@ -1,5 +1,7 @@
-"""
-Health check routes
+"""Rutas de verificación de salud del servidor.
+
+Este módulo define las rutas de la API Flask para verificar el estado
+y disponibilidad del servidor de la API del juego Secret Hitler XL.
 """
 
 from flask import Blueprint, jsonify

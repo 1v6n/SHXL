@@ -119,10 +119,8 @@ def step_president_must_choose_revealer(context):
 @given("que hay un jugador específico como revelador")
 def step_specific_revealer_player(context):
     context.revealer_player = context.player3
-    # Ya inicializado como diccionario real en step_chancellor_game_valid_state
-    # pero asegurémonos de que esté disponible
-    if not hasattr(context.revealer_player, "known_affiliations"):
-        context.revealer_player.known_affiliations = {}
+    # Asegurar que known_affiliations sea un diccionario real, no un Mock
+    context.revealer_player.known_affiliations = {}
 
 
 @given("que no hay jugadores elegibles para el impeachment")
@@ -228,7 +226,7 @@ def step_president_selects_valid_player(context):
 
 @when("el Canciller activa impeachment con revelador específico")
 def step_activate_impeachment_with_specific_revealer(context):
-    context.result = context.power.execute(context.revealer_player)
+    context.result = context.power.execute(revealer_player=context.revealer_player)
 
 
 @when("el Canciller activa el marcado para ejecución")
