@@ -220,4 +220,3 @@ class EnhancedGameState:
         """Establece el próximo presidente basado en la rotación y avanza el contador de mes."""
         next_index = self.get_next_president_index()
         self.president_candidate = self.active_players[next_index]
-        self.advance_month_counter()

@@ -398,7 +398,7 @@ def _execute_power_for_bot(game, power_type):
 
 
 def _execute_power_for_human(game, power_type, target_player_id):
-    """Ejecuta poder para presidente HUMANO usando target_player_id.
+    """Ejecuta poder para presidente HUMANO usando game.execute_power().
 
     Args:
         game: Instancia del juego.
@@ -409,13 +409,10 @@ def _execute_power_for_human(game, power_type, target_player_id):
         dict: Resultado de la ejecución del poder para humano.
     """
 
-    if power_type == "execution":
-        if target_player_id is None:
-            return {
-                "success": False,
-                "error": "Human president must provide target_player_id for execution",
-            }
-
+    if (
+        power_type in ["execution", "investigation", "special_election"]
+        and target_player_id is not None
+    ):
         target_player = None
         for player in game.state.players:
             if player.id == target_player_id:
@@ -425,176 +422,123 @@ def _execute_power_for_human(game, power_type, target_player_id):
         if not target_player:
             return {"success": False, "error": "Target player not found"}
 
-        if not getattr(target_player, "is_alive", True):
+        if power_type == "execution" and not getattr(target_player, "is_alive", True):
             return {"success": False, "error": "Target player is already dead"}
 
-        target_player.is_alive = False
+        original_method = None
 
-        if (
-            hasattr(game.state, "active_players")
-            and target_player in game.state.active_players
-        ):
-            game.state.active_players.remove(target_player)
+        if power_type == "execution":
+            original_method = game.state.president.kill
+            game.state.president.kill = lambda: target_player
 
-        hitler_executed = getattr(target_player, "is_hitler", False)
-
-        if hitler_executed:
-            game.state.game_over = True
-            if getattr(game, "communists_in_play", False):
-                game.state.winner = "liberal_and_communist"
-            else:
-                game.state.winner = "liberal"
-
-            if hasattr(game, "logger"):
-                game.logger.log_player_death(target_player)
-                if game.communists_in_play:
-                    game.logger.log("Hitler was executed! Liberals and Communists win!")
-                else:
-                    game.logger.log("Hitler was executed! Liberals win!")
-
-            return {
-                "power_executed": power_type,
-                "target_player": {
-                    "id": target_player.id,
-                    "name": getattr(
-                        target_player, "name", f"Player {target_player.id}"
-                    ),
-                    "was_hitler": True,
-                },
-                "result": {
-                    "player_id": target_player.id,
-                    "player_name": getattr(
-                        target_player, "name", f"Player {target_player.id}"
-                    ),
-                    "was_hitler": True,
-                    "is_alive": False,
-                    "execution_successful": True,
-                },
-                "game_over": True,
-                "winner": game.state.winner,
-                "hitler_executed": True,
-                "success": True,
-            }
-        else:
-            if hasattr(game, "logger"):
-                game.logger.log_player_death(target_player)
-
-            return {
-                "power_executed": power_type,
-                "target_player": {
-                    "id": target_player.id,
-                    "name": getattr(
-                        target_player, "name", f"Player {target_player.id}"
-                    ),
-                    "was_hitler": False,
-                },
-                "result": {
-                    "player_id": target_player.id,
-                    "player_name": getattr(
-                        target_player, "name", f"Player {target_player.id}"
-                    ),
-                    "was_hitler": False,
-                    "is_alive": False,
-                    "execution_successful": True,
-                },
-                "game_over": False,
-                "winner": None,
-                "hitler_executed": False,
-                "success": True,
-            }
-
-    elif power_type == "investigation":
-        if target_player_id is None:
-            return {
-                "success": False,
-                "error": "Human president must provide target_player_id for investigation",
-            }
-
-        target_player = None
-        for player in game.state.players:
-            if player.id == target_player_id:
-                target_player = player
-                break
-
-        if not target_player:
-            return {"success": False, "error": "Target player not found"}
-
-        party = getattr(target_player, "party_membership", "liberal")
-
-        if hasattr(game, "logger"):
-            game.logger.log_power_used(
-                power_type, game.state.president, target_player, party
+        elif power_type == "investigation":
+            original_method = game.state.president.choose_player_to_investigate
+            game.state.president.choose_player_to_investigate = (
+                lambda eligible: target_player
             )
 
-        return {
-            "power_executed": power_type,
-            "target_player": {
-                "id": target_player.id,
-                "name": getattr(target_player, "name", f"Player {target_player.id}"),
-                "party": party,
-            },
-            "result": {"party_membership": party},
-            "game_over": False,
-            "winner": None,
-            "hitler_executed": False,
-            "success": True,
-        }
+        elif power_type == "special_election":
+            original_method = game.state.president.choose_next_president
+            game.state.president.choose_next_president = lambda eligible: target_player
 
-    elif power_type == "special_election":
-        if target_player_id is None:
-            return {
-                "success": False,
-                "error": "Human president must provide target_player_id for special election",
-            }
+        try:
+            result = game.execute_power(power_type)
 
-        target_player = None
-        for player in game.state.players:
-            if player.id == target_player_id:
-                target_player = player
-                break
+            if power_type == "execution":
+                hitler_executed = (
+                    getattr(result, "is_hitler", False) if result else False
+                )
 
-        if not target_player:
-            return {"success": False, "error": "Target player not found"}
+                return {
+                    "power_executed": power_type,
+                    "target_player": {
+                        "id": result.id if result else target_player_id,
+                        "name": (
+                            getattr(result, "name", f"Player {target_player_id}")
+                            if result
+                            else f"Player {target_player_id}"
+                        ),
+                        "was_hitler": hitler_executed,
+                    },
+                    "result": {
+                        "player_id": result.id if result else target_player_id,
+                        "player_name": (
+                            getattr(result, "name", f"Player {target_player_id}")
+                            if result
+                            else f"Player {target_player_id}"
+                        ),
+                        "was_hitler": hitler_executed,
+                        "is_alive": False,
+                        "execution_successful": True,
+                    },
+                    "game_over": hitler_executed and game.state.game_over,
+                    "winner": (
+                        getattr(game.state, "winner", None) if hitler_executed else None
+                    ),
+                    "hitler_executed": hitler_executed,
+                    "success": True,
+                }
 
-        game.state.president = target_player
-        game.state.president_candidate = target_player
+            elif power_type == "investigation":
+                party_membership = (
+                    getattr(result, "party_membership", "unknown")
+                    if result
+                    else "unknown"
+                )
 
-        if hasattr(game, "logger"):
-            game.logger.log_power_used(
-                power_type, game.state.president, target_player, target_player
-            )
+                return {
+                    "power_executed": power_type,
+                    "target_player": {
+                        "id": result.id if result else target_player_id,
+                        "name": (
+                            getattr(result, "name", f"Player {target_player_id}")
+                            if result
+                            else f"Player {target_player_id}"
+                        ),
+                        "party": party_membership,
+                    },
+                    "result": {"party_membership": party_membership},
+                    "game_over": False,
+                    "winner": None,
+                    "hitler_executed": False,
+                    "success": True,
+                }
 
-        return {
-            "power_executed": power_type,
-            "target_player": {
-                "id": target_player.id,
-                "name": getattr(target_player, "name", f"Player {target_player.id}"),
-            },
-            "result": {"new_president": target_player.id},
-            "game_over": False,
-            "winner": None,
-            "hitler_executed": False,
-            "success": True,
-        }
+            elif power_type == "special_election":
+                return {
+                    "power_executed": power_type,
+                    "target_player": {
+                        "id": result.id if result else target_player_id,
+                        "name": (
+                            getattr(result, "name", f"Player {target_player_id}")
+                            if result
+                            else f"Player {target_player_id}"
+                        ),
+                    },
+                    "result": {
+                        "new_president": result.id if result else target_player_id
+                    },
+                    "game_over": False,
+                    "winner": None,
+                    "hitler_executed": False,
+                    "success": True,
+                }
+
+        finally:
+            if original_method:
+                if power_type == "execution":
+                    game.state.president.kill = original_method
+                elif power_type == "investigation":
+                    game.state.president.choose_player_to_investigate = original_method
+                elif power_type == "special_election":
+                    game.state.president.choose_next_president = original_method
 
     elif power_type == "policy_peek":
-        top_policies = []
+        result = game.execute_power(power_type)
+
         policy_names = []
-        if hasattr(game.state.board, "policies") and len(game.state.board.policies) < 3:
-            if hasattr(game.state.board, "reshuffle"):
-                game.state.board.reshuffle()
-
-        if (
-            hasattr(game.state.board, "policies")
-            and len(game.state.board.policies) >= 3
-        ):
-            top_policies = game.state.board.policies[:3]
-            policy_names = [policy.type for policy in top_policies]
-
-        if hasattr(game, "logger"):
-            game.logger.log_power_used(
-                power_type, game.state.president, None, policy_names
-            )
+        if result:
+            policy_names = [getattr(policy, "type", str(policy)) for policy in result]
 
         return {
             "power_executed": power_type,
@@ -614,7 +558,10 @@ def _execute_power_for_human(game, power_type, target_player_id):
         }
 
     else:
-        return {"success": False, "error": f"Unknown power type: {power_type}"}
+        return {
+            "success": False,
+            "error": f"Unknown power type or missing target: {power_type}",
+        }
 
 
 def end_legislative_session(game):

@@ -229,6 +229,7 @@ class SHXLGame:
         self.old_month = self.state.month_counter
 
         self.state.set_next_president()
+        self.state.advance_month_counter()
         self.logger.log_month_change(self)
 
     def advance_turn(self):
