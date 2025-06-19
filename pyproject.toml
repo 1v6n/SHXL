@@ -1,0 +1,16 @@
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+mypy_path = "backend"
+
+[[tool.mypy.overrides]]
+module = ["behave.*", "flask.*", "requests.*", "psutil.*", "flask_cors.*", "matplotlib.*"]
+ignore_missing_imports = true
