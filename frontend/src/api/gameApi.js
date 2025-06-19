@@ -67,3 +67,20 @@ export async function startGame(gameId) {
 
   return await response.json();
 }
+
+export async function submitVote(gameId, playerId, vote) {
+    console.log("🗳️ Enviando voto:", { gameId, playerId, vote });
+  const response = await axios.post(`${API_BASE}/games/${gameId}/vote`, {
+    playerId: playerId,
+    vote: vote.toLowerCase() // asegurarse que sea en minúscula
+  });
+  return response.data;
+}
+
+export async function submitLegislativeChoice(gameId, playerId, selectedIndex) {
+  const response = await axios.post(`/games/${gameId}/legislative`, {
+    playerId,
+    selectedIndex,
+  });
+  return response.data;
+}

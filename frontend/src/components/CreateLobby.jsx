@@ -10,7 +10,7 @@ export default function CreateLobby() {
   const [showConfig, setShowConfig] = useState(false);
 
   const [config, setConfig] = useState({
-    playerCount: 10,
+    playerCount: 6,
     withCommunists: true,
     withAntiPolicies: true,
     withEmergencyPowers: true,
@@ -73,34 +73,62 @@ export default function CreateLobby() {
       </label>
 
       {showConfig && (
-        <div className={styles.configPanel}>
-          <label>
-            Cantidad de jugadores:
-            <input
-              type="number"
-              min={5}
-              max={10}
-              value={config.playerCount}
-              onChange={e => setConfig({ ...config, playerCount: parseInt(e.target.value) })}
-              className={styles.numberInput}
-            />
-          </label>
-          <label><input type="checkbox" checked={config.withCommunists} onChange={e => setConfig({ ...config, withCommunists: e.target.checked })} /> Incluir comunistas</label>
-          <label><input type="checkbox" checked={config.withAntiPolicies} onChange={e => setConfig({ ...config, withAntiPolicies: e.target.checked })} /> Incluir políticas anti</label>
-          <label><input type="checkbox" checked={config.withEmergencyPowers} onChange={e => setConfig({ ...config, withEmergencyPowers: e.target.checked })} /> Incluir poderes de emergencia</label>
-          <label>
-            Estrategia IA:
-            <select
-              value={config.strategy}
-              onChange={e => setConfig({ ...config, strategy: e.target.value })}
-              className={styles.selectInput}
-            >
-              <option value="smart">Smart</option>
-              <option value="random">Random</option>
-            </select>
-          </label>
-        </div>
-      )}
+  <div className={styles.configPanel}>
+    <label>
+      Cantidad de jugadores:
+      <input
+        type="number"
+        min={5}
+        max={6}
+        value={config.playerCount}
+        onChange={e =>
+          setConfig(cfg => ({
+            ...cfg,
+            playerCount: Number(e.target.value)
+          }))
+        }
+        className={styles.numberInput}
+      />
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        checked={config.withCommunists.disabled}
+        disabled
+      /> Incluir comunistas
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        checked={config.withAntiPolicies.disabled}
+        disabled
+      /> Incluir políticas anti
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        checked={config.withEmergencyPowers.disabled}
+        disabled
+      /> Incluir poderes de emergencia
+    </label>
+    <label>
+      Estrategia IA:
+      <select
+        value={config.strategy}
+        onChange={e =>
+          setConfig(cfg => ({
+            ...cfg,
+            strategy: e.target.value
+          }))
+        }
+        className={styles.selectInput}
+      >
+        <option value="smart">Smart</option>
+        <option value="random">Random</option>
+      </select>
+    </label>
+  </div>
+  ) }
 
       {error && <p className={styles.error}>{error}</p>}
 
