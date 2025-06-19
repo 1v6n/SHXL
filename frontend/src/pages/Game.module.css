@@ -148,3 +148,14 @@
   color: #888;
   margin-left: 4px;
 }
+
+.buttonPrimary {
+  background-color: #e25822;
+  color: #fff;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+}
