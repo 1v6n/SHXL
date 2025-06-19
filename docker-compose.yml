@@ -1,0 +1,53 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=src.api.app
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONPATH=/app
+    volumes:
+      - ./backend:/app
+    networks:
+      - shxl-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - shxl-network
+
+  test:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    profiles:
+      - testing
+    depends_on:
+      - backend
+    volumes:
+      - ./backend/src/api/test:/app/test
+    networks:
+      - shxl-network
+    command: ["bash", "/app/test/test_game_flow.sh"]
+    environment:
+      - BASE_URL=http://backend:5000
+
+networks:
+  shxl-network:
+    driver: bridge

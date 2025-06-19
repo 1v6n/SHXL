@@ -1,5 +1,4 @@
 # Dockerfile
-# filepath: /home/ivan/Visual Studio Projects/SHXL/backend/Dockerfile
 
 # Usar imagen base de Python
 FROM python:3.12-slim-bullseye

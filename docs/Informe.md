@@ -160,7 +160,6 @@ black + pylint + isort + mypy
 ---
 
 ## Estructura del Proyecto
-
 ```
 SHXL/
 ├── 📁 backend/                   # Código principal del backend
@@ -171,13 +170,25 @@ SHXL/
 │   │   ├── 📁 policies/          # Sistema de políticas
 │   │   └── 📁 roles/             # Sistema de roles
 │   ├── 📁 features/              # Tests BDD (Cucumber)
-│   └── 📁 steps/                 # Implementación de pasos BDD
+│   ├── 📁 steps/                 # Implementación de pasos BDD
+│   ├── 📄 requirements.txt       # Dependencias Python
+│   ├── 📄 pyproject.toml         # Configuración del proyecto
+│   └── 📄 README.md              # Documentación backend
+├── 📁 frontend/                  # Interfaz web React
+│   ├── 📁 src/                   # Código fuente React
+│   │   ├── 📁 api/               # Cliente API REST
+│   │   ├── 📁 components/        # Componentes React reutilizables
+│   │   ├── 📁 pages/             # Páginas principales
+│   │   ├── 📁 assets/            # Recursos estáticos
+│   │   ├── 📄 App.jsx            # Componente raíz de la aplicación
+│   │   ├── 📄 main.jsx           # Punto de entrada React
+│   │   └── 📄 index.css          # Estilos globales
+│   ├── 📄 package.json           # Dependencias Node.js
+│   ├── 📄 vite.config.js         # Configuración Vite
+│   └── 📄 index.html             # Template HTML
 ├── 📁 docs/                      # Documentación
-├── 📄 requirements.txt           # Dependencias Python
-├── 📄 pyproject.toml             # Configuración del proyecto
-└── 📄 README.md                  # Documentación principal
+└── 📄 README.md                  # Documentación principal del proyecto
 ```
-
 ### Módulos Principales
 
 #### 1. **Game Engine** (`src/game/`)
