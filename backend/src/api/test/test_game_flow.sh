@@ -73,7 +73,7 @@ validate_response() {
 }
 
 # Paso 1: Crear nuevo juego con 6 jugadores
-echo "=== Creando nuevo juego ==="
+echo "=== Creando un nuevo juego ==="
 response=$(curl -s -X POST $BASE_URL/newgame -H "Content-Type: application/json" -d '{"playerCount": 6}')
 GAME_ID=$(extract_game_id "$response")
 
@@ -88,7 +88,7 @@ echo "$response" | python3 -m json.tool
 validate_response "$response" "Creación del juego"
 
 # Paso 2: Agregar jugador humano llamado Alice
-echo -e "\n=== Agregando jugador humano ==="
+echo -e "\n=== Agregando un jugador humano ==="
 response=$(curl -s -X POST $BASE_URL/games/$GAME_ID/join -H "Content-Type: application/json" -d '{"playerName": "Alice"}')
 echo "$response" | python3 -m json.tool
 validate_response "$response" "Agregando jugador humano"
@@ -112,15 +112,12 @@ current_phase=$(extract_phase_name "$state_response")
 echo "Fase actual: $current_phase"
 
 # Extraer ID del presidente actual
-president_id=$(echo "$state_response" | python3 -c "
+president_id=$(echo "$response" | python3 -c "
 import sys, json
 try:
     data = json.load(sys.stdin)
-    president = data.get('currentPresident', {})
-    if isinstance(president, dict):
-        print(president.get('id', 'unknown'))
-    else:
-        print('unknown')
+    initial_president = data.get('initialPresident', {})
+    print(initial_president.get('id', 'unknown'))
 except:
     print('unknown')
 " 2>/dev/null)
@@ -128,7 +125,7 @@ except:
 echo "ID del Presidente: $president_id"
 
 # Paso 6: Nominar canciller para salir de la fase de configuración
-echo -e "\n=== Haciendo nominación para salir de la fase setup ==="
+echo -e "\n=== Realizando la nominación para salir de la fase setup ==="
 # Elegir nominado diferente del presidente
 nominee_id=1
 if [ "$president_id" = "1" ]; then
@@ -138,10 +135,10 @@ fi
 echo "Presidente ($president_id) nominando al jugador $nominee_id como Canciller..."
 response=$(curl -s -X POST $BASE_URL/games/$GAME_ID/nominate -H "Content-Type: application/json" -d "{\"nomineeId\": $nominee_id}")
 echo "$response" | python3 -m json.tool
-validate_response "$response" "Haciendo nominación"
+validate_response "$response" " Realizando la nominación"
 
 # Verificar transición de fase después de la nominación
-echo -e "\n=== Verificando fase después de la nominación ==="
+echo -e "\n=== Verificando la fase después de la nominación ==="
 state_response=$(curl -s $BASE_URL/games/$GAME_ID/state)
 current_phase=$(extract_phase_name "$state_response")
 echo "Fase actual después de la nominación: $current_phase"
@@ -235,8 +232,8 @@ except:
     current_phase=$(extract_phase_name "$state_response")
     echo "Fase después de las acciones del presidente: $current_phase"
 
-    # El canciller promulga 1 política (siempre manual)
-    echo "Canciller promulgando política (forzando promulgación manual)..."
+    # El canciller promulga 1 política
+    echo "Canciller promulgando política..."
     response=$(curl -s -X POST $BASE_URL/games/$GAME_ID/chancellor/enact -H "Content-Type: application/json" -d '{"enactIndex": 0}')
 
     if echo "$response" | grep -q '"error"'; then

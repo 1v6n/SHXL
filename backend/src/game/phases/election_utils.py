@@ -122,14 +122,12 @@ def resolve_election(game, votes_dict):
             - winner: String con ganador o None.
             - next_phase: String con nombre de la siguiente fase.
     """
-    # Transferir votos al sistema del backend
     game.state.last_votes = [
         votes_dict.get(p.id, False)
         for p in game.state.players
         if getattr(p, "is_alive", True)
     ]
 
-    # Calcular resultado
     ja_votes = sum(1 for v in game.state.last_votes if v)
     total_votes = len(game.state.last_votes)
     vote_passed = ja_votes > total_votes // 2
@@ -146,9 +144,6 @@ def resolve_election(game, votes_dict):
     }
 
     if vote_passed:
-        # ✅ ELECCIÓN EXITOSA
-
-        # Verificar Hitler Chancellor win condition
         if (
             game.state.fascist_track >= 3
             and hasattr(game.state.chancellor_candidate, "is_hitler")
@@ -162,33 +157,25 @@ def resolve_election(game, votes_dict):
             result["next_phase"] = "game_over"
             return result
 
-        # Instalar gobierno
         install_government(game)
         result["government_installed"] = True
         result["next_phase"] = "legislative"
 
     else:
-        # ❌ ELECCIÓN FALLIDA
-
-        # Avanzar election tracker
         game.state.election_tracker += 1
 
-        # Verificar chaos (3 elecciones fallidas)
         if game.state.election_tracker >= 3:
             game.enact_chaos_policy()
             game.state.election_tracker = 0
 
-            # Verificar victoria después de chaos
             if game.check_policy_win():
                 result["game_over"] = True
                 result["winner"] = getattr(game.state, "winner", "unknown")
                 result["next_phase"] = "game_over"
                 return result
 
-            # Reset term limits
             game.state.term_limited_players = []
 
-        # Limpiar candidato y avanzar presidente
         game.state.chancellor_candidate = None
         advance_to_next_president(game)
 
@@ -200,7 +187,6 @@ def install_government(game):
 
     Basado en ElectionPhase.execute() government installation
     """
-    # Guardar gobierno anterior
     if (
         hasattr(game.state, "president")
         and game.state.president
@@ -212,19 +198,15 @@ def install_government(game):
             "chancellor": game.state.chancellor.id,
         }
 
-    # Instalar nuevo gobierno
     game.state.president = getattr(
         game.state, "president_candidate", game.state.president
     )
     game.state.chancellor = game.state.chancellor_candidate
 
-    # Limpiar candidatos
     game.state.chancellor_candidate = None
 
-    # Reset election tracker
     game.state.election_tracker = 0
 
-    # Actualizar fase
     game.state.current_phase_name = "legislative"
 
 
@@ -235,7 +217,6 @@ def advance_to_next_president(game):
     """
     game.set_next_president()
 
-    # Asegurar que president_candidate esté establecido
     if hasattr(game.state, "president") and game.state.president:
         game.state.president_candidate = game.state.president
 
@@ -248,7 +229,6 @@ def run_full_election_cycle(game):
     Returns:
         dict: Resultado completo de la elección
     """
-    # 1. Verificar ejecuciones pendientes
     execution_result = check_marked_for_execution(game)
     if execution_result["game_over"]:
         return {
@@ -258,7 +238,6 @@ def run_full_election_cycle(game):
             "executed_player": execution_result["player"],
         }
 
-    # 2. Nominación
     nomination_result = nominate_chancellor_safe(game)
     if nomination_result["game_over"]:
         return {
@@ -276,13 +255,11 @@ def run_full_election_cycle(game):
             "next_phase": "election",
         }
 
-    # 3. Votación automática (todos los bots votan)
     votes = {}
     for player in game.state.players:
         if getattr(player, "is_alive", True):
             votes[player.id] = player.vote()
 
-    # 4. Resolución
     election_result = resolve_election(game, votes)
 
     return {
