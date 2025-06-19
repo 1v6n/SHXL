@@ -1,0 +1,105 @@
+/* src/pages/Home.css */Add commentMore actions
+
+.home-container {
+  min-height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+
+  /* color de relleno lateral */
+  background-color: #8B0000;  /* un rojo oscuro que complementa los naranjas */
+
+  /* imagen centrada */
+  background-image: url('../assets/lobby-bg.png');
+  max-width: 100%;
+  max-height: 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+
+  /* flex para centrar el wrapper */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.forms-wrapper {
+  /* hacemos un flex en fila y alineamos al inicio para que queden a la misma altura */
+  display: flex; /* flexbox para alinear los formularios */
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;  /* uniforme en la “línea de base” */
+
+  /* control de ancho y separación */
+  width: 100%;
+  max-width: 700px;
+  gap: 42.5rem;
+}
+
+/* estilos comunes de formulario */
+.lobby-form {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.6); /* fondo negro semi-transparente */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.lobby-form h2 {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.lobby-form label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.lobby-form input {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* separa el botón del último input */
+.lobby-form button {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #e25822;       /* naranja vivo */
+  color: white;
+  cursor: pointer;
+}
+
+.lobby-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* En pantallas menores a 600px, apilar vertical */
+@media (max-width: 768px) {
+  .forms-wrapper {
+    gap: 0.5rem;
+    grid-template-columns: 0.75fr 0.75fr;
+    display: gird;
+    grid-template-columns: 0.75fr;
+    padding: 0.5rem;
+    margin-top: 4rem;
+  }
+}
+
+.error {
+  color: #ff6b6b;        /* un rojo claro y visible */
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+}
