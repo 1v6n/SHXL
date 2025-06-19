@@ -6,6 +6,7 @@ presidencial, promulgación de canciller y ejecución de poderes.
 """
 
 from flask import Blueprint, jsonify, request
+from flask_cors import CORS
 from src.game.phases.legislative_utils import (
     draw_presidential_policies,
     end_legislative_session,
@@ -18,6 +19,7 @@ from ..storage import games
 from ..utils.game_state_helpers import _get_current_phase_name, _get_game_state_status
 
 legislative_bp = Blueprint("legislative", __name__)
+CORS(legislative_bp, resources={r"/*": {"origins": "*"}})
 
 
 @legislative_bp.route("/games/<game_id>/president/draw", methods=["POST"])
