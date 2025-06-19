@@ -2,8 +2,8 @@ import policyLiberal from '../assets/policy-liberal.png';
 import policyFascist from '../assets/policy-fascist.png';
 
 const policyImages = {
-  Liberal: policyLiberal,
-  Fascist: policyFascist,
+  liberal: policyLiberal,
+  fascist: policyFascist,
 };
 
 export default function PolicyRevealBanner({ type }) {
@@ -25,16 +25,35 @@ export default function PolicyRevealBanner({ type }) {
         animation: 'fadeInOut 3s ease-in-out',
       }}
     >
-      <img
-        src={policyImages[type]}
-        alt={`Política ${type}`}
+      <div
         style={{
-          height: '400px',
-          borderRadius: '1rem',
-          boxShadow: '0 0 20px rgba(0,0,0,0.8)',
-          transition: 'transform 0.5s ease-in-out',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
-      />
+      >
+        <div
+          style={{
+            color: 'white',
+            fontSize: '2rem',
+            marginBottom: '2rem',
+            textAlign: 'center',
+            textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+          }}
+        >
+          El canciller decidió promulgar esta política
+        </div>
+        <img
+          src={policyImages[type]}
+          alt={`Política ${type}`}
+          style={{
+            height: '400px',
+            borderRadius: '1rem',
+            boxShadow: '0 0 20px rgba(0,0,0,0.8)',
+            transition: 'transform 0.5s ease-in-out',
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -7,52 +7,56 @@ export default function Game() {
   const { gameId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const playerId = location.state?.playerId;
+
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState(null);
   const [botCount, setBotCount] = useState(1);
   const [botAdding, setBotAdding] = useState(false);
   const [loading, setLoading] = useState(false);  
 
-    useEffect(() => {
-        const fetchState = async () => {
-          try {
-            const state = await getGameState(gameId);
-        
-            console.log("🧠 Estado completo:", state); // 👈 línea clave
-        
-            setPlayers(
-              state.players.map((p) => ({
-                name: p.name,
-                vip: p.id === 0 && p.isHuman,
-                isBot: p.isBot,
-              }))
-            );
-        
-            if (state.gameState === 'in_progress'){
-                navigate(`/match/${gameId}`);
-            }
-          } catch (err) {
-            console.error('Error actualizando estado del juego', err);
-          }
+  useEffect(() => {
+    const fetchState = async () => {
+      try {
+        const state = await getGameState(gameId);
+        console.log("🧠 Estado completo:", state);
+
+        setPlayers(
+          state.players.map((p) => ({
+            name: p.name,
+            vip: p.id === 0 && p.isHuman,
+            isBot: p.isBot,
+          }))
+        );
+
+        if (state.gameState === 'in_progress') {
+          navigate(`/match/${gameId}`, {
+            state: { playerId }
+          });
+        }
+      } catch (err) {
+        console.error('Error actualizando estado del juego', err);
+      }
     };
-  
+
     fetchState();
     const interval = setInterval(fetchState, 2000);
     return () => clearInterval(interval);
-  }, [gameId]);
-
+  }, [gameId, navigate, playerId]);
 
   const handleStartGame = async () => {
     setLoading(true);
     try {
       await startGame(gameId);
-      navigate(`/match/${gameId}`);
+      navigate(`/match/${gameId}`, {
+        state: { playerId }
+      });
     } catch (err) {
       console.error(err);
-      if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error); // 🔥 mensaje del backend
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
       } else if (err.message) {
-        setError(err.message); // 🌐 error de red o timeout
+        setError(err.message);
       } else {
         setError('No se pudo iniciar la partida. Intenta de nuevo.');
       }
@@ -61,20 +65,20 @@ export default function Game() {
     }
   };
 
-    const handleAddBots = async () => {
+  const handleAddBots = async () => {
     if (botCount < 1 || botCount > 10) return;
     setBotAdding(true);
     try {
       await addBots(gameId, botCount, 'smart', 'Bot');
     } catch (err) {
       console.error(err);
-    if (err.response && err.response.data && err.response.data.error) {
-      setError(err.response.data.error);
-    } else if (err.message) {
-      setError(err.message);
-    } else {
-      setError('Ocurrió un error al añadir bots.');
-    }
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Ocurrió un error al añadir bots.');
+      }
     } finally {
       setBotAdding(false);
     }
@@ -136,18 +140,18 @@ export default function Game() {
         </div>
 
         <div className={styles.buttonGroup}>
-          {
-            <button
-              onClick={handleStartGame}
-              disabled={loading}
-              className={styles.buttonPrimary}
-            >
-              {loading ? 'Iniciando...' : 'EMPEZAR PARTIDA'}
-            </button>
-          }
+          <button
+            onClick={handleStartGame}
+            disabled={loading}
+            className={styles.buttonPrimary}
+          >
+            {loading ? 'Iniciando...' : 'EMPEZAR PARTIDA'}
+          </button>
+
           <Link to="/" className={styles.buttonSecondary}>
             VOLVER AL INICIO
           </Link>
+
           {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
       </div>

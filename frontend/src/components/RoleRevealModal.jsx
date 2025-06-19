@@ -54,7 +54,17 @@ export default function RoleRevealModal({ visible, role, onClose }) {
         padding: '1.5rem',
       }}
     >
-      <img src={roleAssets[role]} alt={`Rol: ${role}`} style={{ height: '300px' }} />
+      <img
+        src={roleAssets[role]}
+        alt={`Rol: ${role}`}
+        style={{
+          maxHeight: '30vh',
+          maxWidth: '80vw',
+          width: 'auto',
+          height: 'auto',
+          objectFit: 'contain',
+        }}
+      />
 
       <h2 style={{ margin: 0 }}>{title}</h2>
       <p><strong>{win}</strong></p>
@@ -64,15 +74,16 @@ export default function RoleRevealModal({ visible, role, onClose }) {
       <button
         onClick={onClose}
         style={{
-          marginTop: '1rem',
-          padding: '0.8rem 1.5rem',
-          fontSize: '1rem',
+          marginTop: '0.5rem',
+          padding: '1rem 2.5rem',
+          fontSize: '1.25rem',
           fontWeight: 'bold',
           background: '#ff5722',
           color: 'white',
           border: 'none',
           borderRadius: '0.5rem',
           cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         Entendido

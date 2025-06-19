@@ -15,9 +15,13 @@ const banners = {
 export default function VictoryBanner({ winner }) {
     const navigate = useNavigate();
 
-    if (!winner || !banners[winner]) return null;
+    const normalizedWinner = winner === "Liberales" ? "Liberal" :
+                             winner === "Fascistas" ? "Fascist" :
+                             winner;
 
-    const { header } = banners[winner];
+    if (!normalizedWinner || !banners[normalizedWinner]) return null;
+
+    const { header } = banners[normalizedWinner];
 
     return (
         <div
@@ -39,7 +43,7 @@ export default function VictoryBanner({ winner }) {
         >
             <img
                 src={header}
-                alt={`${winner} Wins`}
+                alt={`${normalizedWinner} Wins`}
                 style={{ maxWidth: '70vw', maxHeight: '35vh', objectFit: 'contain' }}
             />
 

@@ -39,3 +39,4 @@ export default function FacistBoard({ policies = 0})
   );
 }
 
+

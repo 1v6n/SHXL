@@ -11,9 +11,10 @@ export default function CreateLobby() {
 
   const [config, setConfig] = useState({
     playerCount: 6,
-    withCommunists: true,
-    withAntiPolicies: true,
-    withEmergencyPowers: true,
+    // Los checks ya no están en la vista, pero los valores se mantienen en false
+    withCommunists: false,
+    withAntiPolicies: false,
+    withEmergencyPowers: false,
     strategy: 'smart'
   });
 
@@ -31,9 +32,25 @@ export default function CreateLobby() {
 
     try {
       const trimmedName = name.trim();
-      const { gameID } = await createGame({ playerName: name.trim(), ...config });
-      await joinGame(gameID, trimmedName);
-      navigate(`/game/${gameID}`, { state: { playerName: trimmedName } });
+      // Siempre envía los 3 checks como false
+      const { gameID } = await createGame({
+        playerName: trimmedName,
+        playerCount: config.playerCount,
+        withCommunists: false,
+        withAntiPolicies: false,
+        withEmergencyPowers: false,
+        strategy: config.strategy
+      });
+
+      const joinResponse = await joinGame(gameID, trimmedName);
+      const playerId = joinResponse.playerId;
+
+      navigate(`/game/${gameID}`, {
+        state: {
+          playerName: trimmedName,
+          playerId
+        }
+      });
     } catch (err) {
       console.error(err);
       setError('Error! Intenta de nuevo.');
@@ -55,6 +72,7 @@ export default function CreateLobby() {
           onClick={() => setShowConfig(prev => !prev)}
           className={styles.gearButton}
           title="Configurar partida"
+          disabled={loading}
         >
           ⚙️
         </button>
@@ -73,62 +91,43 @@ export default function CreateLobby() {
       </label>
 
       {showConfig && (
-  <div className={styles.configPanel}>
-    <label>
-      Cantidad de jugadores:
-      <input
-        type="number"
-        min={5}
-        max={6}
-        value={config.playerCount}
-        onChange={e =>
-          setConfig(cfg => ({
-            ...cfg,
-            playerCount: Number(e.target.value)
-          }))
-        }
-        className={styles.numberInput}
-      />
-    </label>
-    <label>
-      <input
-        type="checkbox"
-        checked={config.withCommunists.disabled}
-        disabled
-      /> Incluir comunistas
-    </label>
-    <label>
-      <input
-        type="checkbox"
-        checked={config.withAntiPolicies.disabled}
-        disabled
-      /> Incluir políticas anti
-    </label>
-    <label>
-      <input
-        type="checkbox"
-        checked={config.withEmergencyPowers.disabled}
-        disabled
-      /> Incluir poderes de emergencia
-    </label>
-    <label>
-      Estrategia IA:
-      <select
-        value={config.strategy}
-        onChange={e =>
-          setConfig(cfg => ({
-            ...cfg,
-            strategy: e.target.value
-          }))
-        }
-        className={styles.selectInput}
-      >
-        <option value="smart">Smart</option>
-        <option value="random">Random</option>
-      </select>
-    </label>
-  </div>
-  ) }
+        <div className={styles.configPanel}>
+          <label>
+            Cantidad de jugadores:
+            <input
+              type="number"
+              min={5}
+              max={6}
+              value={config.playerCount}
+              onChange={e =>
+                setConfig(cfg => ({
+                  ...cfg,
+                  playerCount: Number(e.target.value)
+                }))
+              }
+              className={styles.numberInput}
+              disabled={loading}
+            />
+          </label>
+          <label>
+            Estrategia IA:
+            <select
+              value={config.strategy}
+              onChange={e =>
+                setConfig(cfg => ({
+                  ...cfg,
+                  strategy: e.target.value
+                }))
+              }
+              className={styles.selectInput}
+              disabled={loading}
+            >
+              <option value="smart">Smart</option>
+              <option value="random">Random</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       {error && <p className={styles.error}>{error}</p>}
 

@@ -11,10 +11,11 @@ export default function Board({
   fascistPolicies,
   policiesInDeck,
   policiesInDiscard,
+  failedElections,
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-      <LiberalBoard policies={liberalPolicies} />
+      <LiberalBoard policies={liberalPolicies} failedElections={failedElections} />
 
       {/* Mazos entre tableros */}
       <div style={{ display: 'flex', gap: '4rem', justifyContent: 'center', alignItems: 'center' }}>

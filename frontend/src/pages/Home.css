@@ -1,4 +1,4 @@
-/* src/pages/Home.css */Add commentMore actions
+/* src/pages/Home.css */
 
 .home-container {
   min-height: 100vh;
@@ -33,7 +33,7 @@
   /* control de ancho y separación */
   width: 100%;
   max-width: 700px;
-  gap: 42.5rem;
+  gap: 42.5rem; 
 }
 
 /* estilos comunes de formulario */

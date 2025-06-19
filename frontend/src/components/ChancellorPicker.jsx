@@ -1,81 +1,127 @@
 import playerBase from '../assets/player-base.png';
 import playerBaseUnselectable from '../assets/player-base-unselectable.png';
+import { useState } from 'react';
 
 export default function ChancellorPicker({
   players,
   currentPlayerId,
-  previousChancellorId,
-  previousPresidentId,
+  government,
   onSelect,
-  disabled,
 }) {
-  if (!players || players.length === 0) return null;
+  const [selectedId, setSelectedId] = useState(null);
 
-  const tooManyPlayers = players.length >= 5;
+  if (!players || players.length === 0 || !government) return null;
+
+  const termLimitedIds = government.termLimited?.map(p => p.id) ?? [];
 
   const validCandidates = players.filter(p => {
     const isSelf = p.id === currentPlayerId;
     const isDead = p.isAlive === false;
-    const isPrevChancellor = p.id === previousChancellorId;
-    const isPrevPresident = p.id === previousPresidentId;
+    const isTermLimited = termLimitedIds.includes(p.id);
 
-    return (
-      !isSelf &&
-      !isDead &&
-      !isPrevChancellor &&
-      (!tooManyPlayers || !isPrevPresident)
-    );
+    return !isSelf && !isDead && !isTermLimited;
   });
+
+  const handleSelect = (id) => {
+    setSelectedId(id);
+    onSelect(id);
+  };
 
   return (
     <div
       style={{
-        marginTop: '2rem',
-        padding: '1rem',
-        background: '#222',
-        borderRadius: '1rem',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0,0,0,0.85)',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         color: 'white',
-        textAlign: 'center',
+        gap: '2rem',
       }}
     >
-      <h3>👑 Eres el Presidente, elige un Canciller:</h3>
+      <h2>👑 Eres el Presidente, elige un Canciller</h2>
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1rem',
+          gap: '1.5rem',
           justifyContent: 'center',
-          marginTop: '1rem',
+          flexWrap: 'wrap',
         }}
       >
         {validCandidates.map(p => (
-          <div
+          <button
             key={p.id}
-            onClick={() => !disabled && onSelect(p.id)}
+            onClick={() => handleSelect(p.id)}
             style={{
-              width: '90px',
-              height: '120px',
-              background: '#333',
-              borderRadius: '0.5rem',
+              width: '120px',
+              height: '180px',
+              background: '#181818',
+              borderRadius: '0.75rem',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '0.5rem',
               color: 'white',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              opacity: disabled ? 0.5 : 1,
-              boxShadow: '0 0 6px rgba(0, 0, 0, 0.4)',
-              transition: 'transform 0.2s',
+              cursor: 'pointer',
+              boxShadow: selectedId === p.id
+                ? '0 0 16px 4px #ffe066, 0 2px 8px rgba(0,0,0,0.5)'
+                : '0 2px 8px rgba(0,0,0,0.5)',
+              border: 'none',
+              outline: selectedId === p.id ? '3px solid #ffe066' : '2px solid #444',
+              position: 'relative',
+              transition: 'all 0.2s',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              padding: 0,
+            }}
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleSelect(p.id);
+              }
             }}
           >
             <img
               src={p.isAlive === false ? playerBaseUnselectable : playerBase}
               alt="Jugador"
-              style={{ width: '50px', height: '50px', marginBottom: '0.5rem' }}
+              style={{
+                width: '100px',
+                height: '100px',
+                marginBottom: '0.75rem',
+                filter: p.isAlive === false ? 'grayscale(1)' : 'none',
+                opacity: p.isAlive === false ? 0.6 : 1,
+                borderRadius: '0%',
+                boxShadow: '0 0 8px #000',
+              }}
             />
-            <strong style={{ fontSize: '0.75rem' }}>{p.name}</strong>
-          </div>
+            <span style={{ marginBottom: '0.25rem' }}>{p.name}</span>
+            {selectedId === p.id && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  background: '#ffe066',
+                  color: '#222',
+                  borderRadius: '50%',
+                  width: 26,
+                  height: 26,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem',
+                  boxShadow: '0 0 4px #ffe066',
+                }}
+              >✓</span>
+            )}
+          </button>
         ))}
       </div>
     </div>
